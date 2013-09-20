@@ -6,7 +6,7 @@ library test_web_idl;
 
 import 'package:unittest/unittest.dart';
 import '../tool/web_idl_parser.dart';
-
+import '../tool/model_idl.dart';
 /*
  * test cases can be found at
  * https://github.com/w3c/web-platform-tests/tree/master/WebIDL/tests/submissions/W3C
@@ -266,6 +266,26 @@ namespace alarms {
 };""";
       var p = webIdlParser.start;
       var sp = p.parse(example);
+      print(webIdlParser.model.name);
+      // print(webIdlParser.model.functions);
+      print("----- Properties -----");
+      webIdlParser.model.properties.forEach((IDLProperty p) {
+        print(p.name);
+        print(p.returnType);
+      });
+
+      print("----- Functions -----");
+      webIdlParser.model.functions.forEach((IDLFunction f) {
+        print(f.toString());
+        print(f.parameters);
+        print(f.returnType);
+      });
+
+      print("----- Events -----");
+      webIdlParser.model.events.forEach((IDLEvent f) {
+        print(f.name);
+        print(f.params);
+      });
       expect(sp, equals(
           [
     EMPTY,

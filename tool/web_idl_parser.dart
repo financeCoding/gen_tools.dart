@@ -5,6 +5,7 @@
 library web_idl_parser;
 
 import 'package:parsers/parsers.dart';
+import 'model_idl.dart';
 
 class EMPTY {
   // EPSILON
@@ -70,11 +71,18 @@ final reservedNames = [ "readonly",
 
 // http://www.w3.org/TR/WebIDL/#idl-grammar
 class WebIdlParser extends LanguageParsers {
+  final IDLNamespace model = new IDLNamespace();
+  var _functions = [];
+
   WebIdlParser() : super(reservedNames: reservedNames);
 
-  get start =>  whiteSpace > (stmts() < eof);
+  get start =>  whiteSpace  > (stmts() < eof);
 
-  stmts() => stmt();
+//  get start => stmts()| whiteSpace ^ (w) {
+//    print("w = $w");
+//    return w; } ;
+
+  stmts() => stmt() ;
 
   stmt() => namespace() | rec(definitions);
 
@@ -83,7 +91,10 @@ class WebIdlParser extends LanguageParsers {
                 + reserved["namespace"]
                 + namespaceIdentifier()
                 + braces(rec(definitions))
-                + semi).list;
+                + semi).list ^ (l) {
+    model.name = l[2][0];
+    return l;
+  };
 
   // Custom Google WebIDL grammar
   namespaceIdentifier() => identifier.sepBy(dot) | identifier;
@@ -111,7 +122,28 @@ class WebIdlParser extends LanguageParsers {
                       + identifier
                       + inheritance()
                       + braces(rec(interfaceMembers))
-                      + semi).list;
+                      + semi).list ^ (l) {
+    print("interfaceStmt");
+    print(l);
+    if (l[1] == "Functions") {
+      var f = l[3];
+      model.functions.addAll(_functions);
+      _functions = [];
+      print(f);
+    } else if (l[1] == "Events") {
+      var e = l[3];
+      // Really messed up.
+      _functions.forEach((IDLFunction e) {
+        IDLEvent event = new IDLEvent(e.name);
+        event.params.addAll(e.parameters);
+        model.events.add(event);
+      });
+      // model.events.addAll(_functions);
+      _functions = [];
+      print(e);
+    }
+    return l;
+  };
 
   partial() => (reserved["partial"] + rec(partialDefinition)).list;
 
@@ -124,16 +156,143 @@ class WebIdlParser extends LanguageParsers {
 
   interfaceMembers() => (rec(extendedAttributeList)
                         + rec(interfaceMember)
-                        + rec(interfaceMembers)).list
+                        + rec(interfaceMembers)).list ^ (l) {
+                          print("interfaceMembers");
+                          print(l);
+                          return l;
+                        }
                         | spaces;
 
-  interfaceMember() => rec(constStmt) | rec(attributeOrOperation);
+  interfaceMember() => rec(constStmt) ^ (l) {
+    print("interfaceMember:constStmt");
+    print(l);
+    return l;
+                      }
+                     | rec(attributeOrOperation) ^ (l) {
+                       //_functions = [];
+                       print("interfaceMember:attributeOrOperation");
+                       print(l);
+                       var f = l[1];
+                       var n = f[1];
+                       var arg = f[2];
+                       IDLFunction function = new IDLFunction(n, "");
+                       // function.parameters
+                       print(arg);
+                       List recusriveParams = [];
+                       IDLParameter reduceParameter(a) {
+                         var func = a;
+                         print(func);
+
+                         if (func[1] is List) {
+                           var t = func[1][0];
+                           var nn;
+                           if (func[1][2] != EMPTY) {
+                             nn = func[1][2];
+                           } else if (func[1][3] != EMPTY) {
+                             nn = func[1][3];
+                           } else {
+                             // throw, does not know how to parse.
+                           }
+
+                           IDLParameter param = new IDLParameter(nn);
+
+                           if (t is List) {
+                             print(t);
+                             var type = t[0];
+
+                             if (type is List) {
+                               print ("found list");
+
+                               print(type);
+                               type = type[0];
+                             }
+
+                             param.type = new IDLType(type);
+
+                           } else if (t is String) {
+                             if (t == "optional") {
+                               param.optional = true;
+                             }
+
+                             if (func[1][1] is List) {
+                               //if ()
+                               var type = func[1][1][0];
+                               print(func[1][1]);
+                               print(type); // todo check for empty
+
+                               if (type is List) {
+                                 print ("found list");
+                                 print(type);
+                                 type = type[0];
+                               }
+
+                               param.type = new IDLType(type);
+                             }
+                           }
+
+                           return param;
+                         }
+                       };
+
+                       parameterParser(a) {
+                         var func;
+                         if (a == EMPTY) return;
+
+                         if (a.length == 3) {
+                           // recursive
+                           func = a[1];
+                           print(func);
+                           IDLParameter param = reduceParameter(func);
+                           //function.parameters.add(param);
+                           recusriveParams.add(param);
+
+                           if (a[2] != EMPTY) {
+                            parameterParser(a[2]);
+                            return;
+                           } else {
+                             return;
+                           }
+                         }
+
+                         if (a.length == 2) {
+                           //
+                           func = a[1];
+
+                           print(func);
+                         }
+                       };
+
+
+                       if (arg != EMPTY) {
+                         var func = arg[0];
+                         print(func);
+                         IDLParameter param = reduceParameter(func);
+                         function.parameters.add(param);
+
+                         if (arg.length > 1) {
+                          parameterParser(arg[1]);
+                         }
+                       }
+
+                       if (!recusriveParams.isEmpty) {
+                         //var r = recusriveParams.reversed;
+                         //function.parameters.addAll(r);
+                         function.parameters.addAll(recusriveParams);
+                       }
+
+                       _functions.add(function);
+                       return l;
+                       };
 
   dictionary() => (reserved["dictionary"]
                   + identifier
                   + inheritance()
                   + braces(rec(dictionaryMembers))
-                  + semi).list;
+                  + semi).list ^ (l) {
+                    print("dictionary");
+                    print(l);
+                    return l;
+                  };
 
   dictionaryMembers() => (rec(extendedAttributeList)
                           + rec(dictionaryMember)
@@ -141,6 +300,26 @@ class WebIdlParser extends LanguageParsers {
                           | spaces;
 
   dictionaryMember() => (rec(type) + identifier + rec(defaultStmt) + semi).list
+                        ^ (l) {
+    print("dictionaryMember");
+    print(l);
+
+    String n = l[1];
+    IDLProperty prop = new IDLProperty(n);
+    var t = l[0][0];
+
+    print(t);
+
+    if (t is List) {
+      print("found list");
+      t = t[0];
+    }
+
+    prop.returnType = new IDLType(t);
+    model.properties.add(prop);
+    return l;
+  }
+
                         // Non standard WebIDL in Chrome IDL operations as
                         // dictionary members
                         | rec(operation);
@@ -178,12 +357,12 @@ class WebIdlParser extends LanguageParsers {
                 + braces(rec(enumIdentifierList))
                 + semi).list;
 
-  enumValueList() => (stringLiteral + rec(enumValues)).list;
+  enumValueList() => (stringLiteral + rec(enumValues)).list ^ (l) { return l;};
 
   enumValues() => (symbol(",") + stringLiteral + rec(enumValues)).list | spaces;
 
   // chrome idl does not follow the WebIDL spec, enums should be string literal.
-  enumIdentifierList() => (identifier + rec(enumIdentifiers)).list;
+  enumIdentifierList() => (identifier + rec(enumIdentifiers)).list ^ (l) { return l;};
 
   enumIdentifiers() => (symbol(",") + identifier + rec(enumIdentifiers)).list | spaces;
 
@@ -271,7 +450,7 @@ class WebIdlParser extends LanguageParsers {
 
   optionalIdentifier() => identifier | spaces;
 
-  argumentList() => (rec(argument) + rec(arguments)).list | spaces;
+  argumentList() => (rec(argument) + rec(arguments)).list ^ (l) { return l;} | spaces;
 
   arguments() => (symbol(",")
                   + rec(argument)

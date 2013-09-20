@@ -34,31 +34,31 @@ void defineTests({bool includeWebIdl: true}) {
   Iterable<FileSystemEntity> chromeIdlFileEntities = new Directory('idl')
     .listSync(recursive: false, followLinks: false).where(idlFileExtTest);
 
-  if (includeWebIdl) {
-    group('web_idl_parser valid', () {
-      // TODO: make async
-      validFileEntities.forEach((FileSystemEntity fileEntity) {
-        test('${fileEntity.path}', () {
-          File file = new File(fileEntity.path);
-          String webIdl = file.readAsStringSync();
-          WebIdlParser webIdlParser = new WebIdlParser();
-          webIdlParser.start.parse(webIdl);
-        });
-      });
-    });
-  }
-
-  group('web_idl_parser invalid', () {
-    // TODO: make async
-    invalidFileEntities.forEach((FileSystemEntity fileEntity) {
-      test('${fileEntity.path}', () {
-        File file = new File(fileEntity.path);
-        String webIdl = file.readAsStringSync();
-        WebIdlParser webIdlParser = new WebIdlParser();
-        expect(()=> webIdlParser.start.parse(webIdl), throws);
-      });
-    });
-  });
+//  if (includeWebIdl) {
+//    group('web_idl_parser valid', () {
+//      // TODO: make async
+//      validFileEntities.forEach((FileSystemEntity fileEntity) {
+//        test('${fileEntity.path}', () {
+//          File file = new File(fileEntity.path);
+//          String webIdl = file.readAsStringSync();
+//          WebIdlParser webIdlParser = new WebIdlParser();
+//          webIdlParser.start.parse(webIdl);
+//        });
+//      });
+//    });
+//  }
+//
+//  group('web_idl_parser invalid', () {
+//    // TODO: make async
+//    invalidFileEntities.forEach((FileSystemEntity fileEntity) {
+//      test('${fileEntity.path}', () {
+//        File file = new File(fileEntity.path);
+//        String webIdl = file.readAsStringSync();
+//        WebIdlParser webIdlParser = new WebIdlParser();
+//        expect(()=> webIdlParser.start.parse(webIdl), throws);
+//      });
+//    });
+//  });
 
   group('web_idl_parser chrome', () {
     // TODO: make async
