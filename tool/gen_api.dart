@@ -9,6 +9,7 @@ import 'package:args/args.dart';
 import 'backend.dart';
 import 'model_chrome.dart';
 import 'model_json.dart' as model_json;
+import 'model_idl.dart' as model_idl;
 import 'overrides.dart';
 import 'web_idl_parser.dart';
 import 'src/utils.dart';
@@ -60,14 +61,17 @@ class GenApiFile {
       chromeLib = model_json.convert(namespace);
     } else if (inFile.path.endsWith(".idl")) {
       WebIdlParser webIdlParser = new WebIdlParser();
+//
+//      chromeLib = new ChromeLibrary();
+//      chromeLib.name = fileName.substring(0, fileName.indexOf('.'));
+//      chromeLib.name = chromeLib.name.replaceAll('_', '.');
+//      List tokens = webIdlParser.start.parse(inFile.readAsStringSync());
+//      if (_parseNamespace(tokens) != null) {
+//        chromeLib.name = _parseNamespace(tokens);
+//      }
 
-      chromeLib = new ChromeLibrary();
-      chromeLib.name = fileName.substring(0, fileName.indexOf('.'));
-      chromeLib.name = chromeLib.name.replaceAll('_', '.');
-      List tokens = webIdlParser.start.parse(inFile.readAsStringSync());
-      if (_parseNamespace(tokens) != null) {
-        chromeLib.name = _parseNamespace(tokens);
-      }
+      webIdlParser.start.parse(inFile.readAsStringSync());
+      chromeLib = model_idl.convert(webIdlParser.model);
     }
 
     outFile.directory.createSync();
