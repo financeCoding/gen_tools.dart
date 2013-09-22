@@ -290,6 +290,13 @@ class WebIdlParser extends LanguageParsers {
                   + braces(rec(dictionaryMembers))
                   + semi).list ^ (l) {
                     print("dictionary");
+                    IDLDeclaredType t = new IDLDeclaredType();
+                    t.name = l[1];
+                    t.members.addAll(model.properties);
+                    model.properties = []; // TODO: This is a bad way to manage
+                    // the properties until they are added to a declared type.
+
+                    model.types.add(t);
                     print(l);
                     return l;
                   };

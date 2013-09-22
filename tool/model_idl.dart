@@ -16,7 +16,11 @@ class IDLNamespace {
 
   List<IDLFunction> functions = [];
   List<IDLEvent> events = [];
+  // properties are members that hang off defined dictionaries. Might not need
+  // to resparse since its not the same as the json definitions.
+  // IDLProperty could be part of a type.
   List<IDLProperty> properties = [];
+  List<dynamic> types = []; //
 
   String toString() => name;
 }
@@ -60,6 +64,15 @@ class IDLFunction {
   }
 
   String toString() => "${name}()";
+}
+
+class IDLDeclaredType {
+  String name;
+
+  // This is for dictionary
+  List<IDLProperty> members = []; // The members of the declared type.
+
+  String toString() => name;
 }
 
 class IDLEvent {
