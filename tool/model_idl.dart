@@ -57,6 +57,7 @@ class IDLCollectorChrome implements IDLCollector {
   interfaceMember(l, [doc = ""]) {
     var name = l[1][1];
     var arg = l[1][2];
+    print(doc);
     IDLFunction function = new IDLFunction(name, doc);
 
     List recursiveParams = [];
