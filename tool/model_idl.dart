@@ -14,12 +14,12 @@ class EMPTY {
  */
 class IDLCollector {
   IDLNamespace idlNamespace;
-  namespace(l) => l; // Must return type passed for parser to continue.
-  interface(l) => l; // Must return type passed for parser to continue.
-  interfaceMember(l) => l; // Must return type passed for parser to continue.
-  dictionary(l) => l; // Must return type passed for parser to continue.
-  dictionaryMember(l) => l; // Must return type passed for parser to continue.
-  enumStatement(l) => l; // Must return type passed for parser to continue.
+  namespace(l, [doc=""]) => l; // Must return type passed for parser to continue.
+  interface(l, [doc = ""]) => l; // Must return type passed for parser to continue.
+  interfaceMember(l, [doc = ""]) => l; // Must return type passed for parser to continue.
+  dictionary(l, [doc = ""]) => l; // Must return type passed for parser to continue.
+  dictionaryMember(l, [doc = ""]) => l; // Must return type passed for parser to continue.
+  enumStatement(l, [doc = ""]) => l; // Must return type passed for parser to continue.
 }
 
 class IDLCollectorChrome implements IDLCollector {
@@ -27,14 +27,15 @@ class IDLCollectorChrome implements IDLCollector {
   List _functions = [];
   List _dictionaryMembers = [];
 
-  namespace(l) {
+  namespace(l, [doc = ""]) {
+    print(l);
     idlNamespace.name = l[2].join('.');
-
+    idlNamespace.description = doc;
     // Must return type passed for parser to continue.
     return l;
   }
 
-  interface(l) {
+  interface(l, [doc = ""]) {
     if (l[1] == "Functions") {
       idlNamespace.functions.addAll(_functions);
       _functions = [];
@@ -52,10 +53,10 @@ class IDLCollectorChrome implements IDLCollector {
     return l;
   }
 
-  interfaceMember(l) {
+  interfaceMember(l, [doc = ""]) {
     var name = l[1][1];
     var arg = l[1][2];
-    IDLFunction function = new IDLFunction(name, "");
+    IDLFunction function = new IDLFunction(name, doc);
 
     List recursiveParams = [];
 
@@ -147,9 +148,10 @@ class IDLCollectorChrome implements IDLCollector {
     return l;
   }
 
-  dictionary(l) {
+  dictionary(l, [doc = ""]) {
     String name = l[1];
     IDLDeclaredType declaredType = new IDLDeclaredType(name);
+    declaredType.description = doc;
     declaredType.members.addAll(_dictionaryMembers);
     _dictionaryMembers = [];
     idlNamespace.declaredTypes.add(declaredType);
@@ -158,9 +160,10 @@ class IDLCollectorChrome implements IDLCollector {
     return l;
   }
 
-  dictionaryMember(l) {
+  dictionaryMember(l, [doc = ""]) {
     String name = l[1];
     IDLProperty member = new IDLProperty(name);
+    member.description = doc;
     var type = l[0][0];
 
     if (type is List) {
@@ -173,7 +176,7 @@ class IDLCollectorChrome implements IDLCollector {
     return l;
   }
 
-  enumStatement(l) {
+  enumStatement(l, [doc = ""]) {
     // Example from usb [enum, Direction, [in, [,, out, EMPTY]], ;]
     //    print("enumStatement:");
     //    print(l);
@@ -181,6 +184,7 @@ class IDLCollectorChrome implements IDLCollector {
     String enumName = l[1];
     var arg = l[2];
     IDLEnum idlEnum = new IDLEnum(enumName);
+    idlEnum.description = doc;
 
     valueParser(a) {
       var value;

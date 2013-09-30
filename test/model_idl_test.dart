@@ -41,6 +41,7 @@ void modelIdlParseTestTypes() {
     WebIdlParser webIdlParser =
         new WebIdlParser.withCollector(new model_idl.IDLCollectorChrome());
     webIdlParser.start.parse(testFile.readAsStringSync());
+    print(webIdlParser.documentationBuffer);
     model_idl.IDLNamespace idlNamespace = webIdlParser.collector.idlNamespace;
     expect(idlNamespace.name, isNotNull);
     expect(idlNamespace.name, "alarms");
@@ -197,7 +198,7 @@ void modelIdlParseEnumTest() {
 }
 
 void main() {
-  group('model_idl.IDLCollectorChrome parse', modelIdlParseTests);
+//  group('model_idl.IDLCollectorChrome parse', modelIdlParseTests);
   group('model_idl', modelIdlParseTestTypes);
-  group('model_idl', modelIdlParseEnumTest);
+//  group('model_idl', modelIdlParseEnumTest);
 }

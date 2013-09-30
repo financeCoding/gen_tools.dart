@@ -4,6 +4,8 @@ library web_idl_parser;
 import 'package:parsers/parsers.dart';
 import 'model_idl.dart';
 export 'model_idl.dart' show EMPTY;
+// ^ (l) { debugParser("", "", l); return l; }
+debugParser(name, rule, l) => print("$name:$rule:$l");
 
 final Parser spaces = (space.many > success(EMPTY)) % 'spaces';
 
@@ -65,7 +67,7 @@ final reservedNames = [ "readonly",
 // http://www.w3.org/TR/WebIDL/#idl-grammar
 class WebIdlParser extends LanguageParsers {
   IDLCollector collector;
-
+  StringBuffer documentationBuffer = new StringBuffer();
   WebIdlParser()
   : super(reservedNames: reservedNames) {
     collector = new IDLCollector();
@@ -76,18 +78,46 @@ class WebIdlParser extends LanguageParsers {
     this.collector = collector;
   }
 
-  get start =>  whiteSpace > (stmts() < eof);
+  String _commentLine = '//';
+  Parser get _xoneLineComment =>
+      string(_commentLine) > (pred((c) {
+        //print(c);
+        documentationBuffer.write(c);
+        return c != '\n'; }).skipMany > success((n){
+        print(n);
+        return n;}));
 
+//    Parser get oneLineComment => _oneLineComment % 'oneLineComment/comment';
+
+    Parser get whiteSpace => _xwhiteSpace % 'whitespace/comment';
+
+    Parser get _xwhiteSpace {
+      return (space | _xoneLineComment).skipMany;
+    }
+
+
+ // get start =>  ( _oneLineComment|spaces) > (stmts() < eof);
+     // | oneLineComment > (stmts() < eof);
+ get start => whiteSpace > (stmts() < eof);
+
+//  stmts() => (space |
+//      _oneLineComment ^ (l) {
+//    debugParser("stmts", "_oneLineComment", l);
+//    return l;
+//    } | stmt()
+//      ).skipMany | stmt();
   stmts() => stmt();
 
-  stmt() => namespace() | rec(definitions);
+  stmt() => namespace()
+      | rec(definitions);
+//      | (string(_commentLine) > pred((c) => c != '\n')).maybe;
 
   // Custom Google WebIDL grammar
   namespace() => (rec(extendedAttributeList)
                 + reserved["namespace"]
                 + namespaceIdentifier()
                 + braces(rec(definitions))
-                + semi).list ^ (l) => collector.namespace(l);
+                + semi).list ^ (l) { collector.namespace(l, documentationBuffer.toString()); documentationBuffer.clear(); return l; };
 
   // Custom Google WebIDL grammar
   namespaceIdentifier() => identifier.sepBy(dot) | identifier;
@@ -115,7 +145,7 @@ class WebIdlParser extends LanguageParsers {
                       + identifier
                       + inheritance()
                       + braces(rec(interfaceMembers))
-                      + semi).list ^ (l) => collector.interface(l);
+                      + semi).list ^ (l) { collector.interface(l, documentationBuffer.toString()); documentationBuffer.clear(); return l; };
 
   partial() => (reserved["partial"] + rec(partialDefinition)).list;
 
@@ -133,13 +163,13 @@ class WebIdlParser extends LanguageParsers {
 
   interfaceMember() => rec(constStmt)
                      | rec(attributeOrOperation)
-                     ^ (l) => collector.interfaceMember(l);
+                     ^ (l) { collector.interfaceMember(l, documentationBuffer.toString()); documentationBuffer.clear(); return l; };
 
   dictionary() => (reserved["dictionary"]
                   + identifier
                   + inheritance()
                   + braces(rec(dictionaryMembers))
-                  + semi).list ^ (l) => collector.dictionary(l);
+                  + semi).list ^ (l) { collector.dictionary(l, documentationBuffer.toString()); documentationBuffer.clear(); return l; };
 
   dictionaryMembers() => (rec(extendedAttributeList)
                           + rec(dictionaryMember)
@@ -148,7 +178,7 @@ class WebIdlParser extends LanguageParsers {
 
   dictionaryMember() => (rec(type) + identifier + rec(defaultStmt) + semi).list
                         // Wrapped in braces not to get caught by the next pipe.
-                        ^ (l) { return collector.dictionaryMember(l); }
+                        ^ (l) { collector.dictionaryMember(l, documentationBuffer.toString()); documentationBuffer.clear(); return l; }
                         // Non standard WebIDL in Chrome IDL operations as
                         // dictionary members
                         | rec(operation);
@@ -185,7 +215,7 @@ class WebIdlParser extends LanguageParsers {
                 + identifier
                 + braces(rec(enumIdentifierList))
                 + semi).list
-                ^ (l) => collector.enumStatement(l);
+                ^ (l) { collector.enumStatement(l, documentationBuffer.toString()); documentationBuffer.clear(); return l; };
 
   enumValueList() => (stringLiteral + rec(enumValues)).list;
 
