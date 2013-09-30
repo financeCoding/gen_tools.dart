@@ -12,101 +12,249 @@ class ChromeDownloads {
 
   ChromeDownloads._();
 
+  /**
+   * Download a URL. If the URL uses the HTTP[S] protocol, then the request
+   *  will include all cookies currently set for its hostname. If both
+   *  <code>filename</code> and <code>saveAs</code> are specified, then the
+   *  Save As dialog will be displayed, pre-populated with the specified
+   *  <code>filename</code>. If the download started successfully,
+   *  <code>callback</code> will be called with the new $ref:DownloadItem's
+   *  <code>downloadId</code>. If there was an error starting the download,
+   *  then <code>callback</code> will be called with
+   *  <code>downloadId=undefined</code> and $ref:runtime.lastError will contain
+   *  a descriptive string. The error strings are not guaranteed to remain
+   *  backwards compatible between releases. Extensions must not parse it.
+   *  |options|: What to download and how.
+   *  |callback|: Called with the id of the new $ref:DownloadItem.
+   *  Find $ref:DownloadItem. Set <code>query</code> to the empty object to get
+   *  all $ref:DownloadItem. To get a specific $ref:DownloadItem, set only the
+   *  <code>id</code> field. To page through a large number of items, set
+   *  <code>orderBy: ['-startTime']</code>, set <code>limit</code> to the
+   *  number of items per page, and set <code>startedAfter</code> to the
+   *  <code>startTime</code> of the last item from the last page.
+   */
   Future download(DownloadOptions options) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _downloads.callMethod('download', [options, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Pause the download. If the request was successful the download is in a
+   *  paused state. Otherwise $ref:runtime.lastError contains an error message.
+   *  The request will fail if the download is not active.
+   *  |downloadId|: The id of the download to pause.
+   *  |callback|: Called when the pause request is completed.
+   */
   Future search(DownloadQuery query) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _downloads.callMethod('search', [query, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Resume a paused download. If the request was successful the download is
+   *  in progress and unpaused. Otherwise $ref:runtime.lastError contains an
+   *  error message. The request will fail if the download is not active.
+   *  |downloadId|: The id of the download to resume.
+   *  |callback|: Called when the resume request is completed.
+   */
   Future pause(int downloadId) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _downloads.callMethod('pause', [downloadId, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Cancel a download. When <code>callback</code> is run, the download is
+   *  cancelled, completed, interrupted or doesn't exist anymore.
+   *  |downloadId|: The id of the download to cancel.
+   *  |callback|: Called when the cancel request is completed.
+   */
   Future resume(int downloadId) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _downloads.callMethod('resume', [downloadId, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Retrieve an icon for the specified download. For new downloads, file
+   *  icons are available after the $ref:onCreated event has been received. The
+   *  image returned by this function while a download is in progress may be
+   *  different from the image returned after the download is complete. Icon
+   *  retrieval is done by querying the underlying operating system or toolkit
+   *  depending on the platform. The icon that is returned will therefore
+   *  depend on a number of factors including state of the download, platform,
+   *  registered file types and visual theme. If a file icon cannot be
+   *  determined, $ref:runtime.lastError will contain an error message.
+   *  |downloadId|: The identifier for the download.
+   *  |callback|: A URL to an image that represents the download.
+   */
   Future cancel(int downloadId) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _downloads.callMethod('cancel', [downloadId, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Open the downloaded file now if the $ref:DownloadItem is complete;
+   *  otherwise returns an error through $ref:runtime.lastError. Requires the
+   *  <code>"downloads.open"</code> permission in addition to the
+   *  <code>"downloads"</code> permission. An $ref:onChanged event will fire
+   *  when the item is opened for the first time.
+   *  |downloadId|: The identifier for the downloaded file.
+   */
   Future getFileIcon(int downloadId, [GetFileIconOptions options]) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _downloads.callMethod('getFileIcon', [downloadId, options, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Show the downloaded file in its folder in a file manager.
+   *  |downloadId|: The identifier for the downloaded file.
+   */
   void open(int downloadId) {
     _downloads.callMethod('open', [downloadId]);
   }
 
+  /**
+   * Show the default Downloads folder in a file manager.
+   */
   void show(int downloadId) {
     _downloads.callMethod('show', [downloadId]);
   }
 
+  /**
+   * Erase matching $ref:DownloadItem from history without deleting the
+   *  downloaded file. An $ref:onErased event will fire for each
+   *  $ref:DownloadItem that matches <code>query</code>, then
+   *  <code>callback</code> will be called.
+   */
   void showDefaultFolder() {
     _downloads.callMethod('showDefaultFolder');
   }
 
+  /**
+   * Remove the downloaded file if it exists and the $ref:DownloadItem is
+   *  complete; otherwise return an error through $ref:runtime.lastError.
+   */
   Future erase(DownloadQuery query) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _downloads.callMethod('erase', [query, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Prompt the user to accept a dangerous download. Does not automatically
+   *  accept dangerous downloads. If the download is accepted, then an
+   *  $ref:onChanged event will fire, otherwise nothing will happen.  When all
+   *  the data is fetched into a temporary file and either the download is not
+   *  dangerous or the danger has been accepted, then the temporary file is
+   *  renamed to the target filename, the |state| changes to 'complete', and
+   *  $ref:onChanged fires.
+   *  |downloadId|: The identifier for the $ref:DownloadItem.
+   *  |callback|: Called when the danger prompt dialog closes.
+   */
   Future removeFile(int downloadId) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _downloads.callMethod('removeFile', [downloadId, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Initiate dragging the downloaded file to another application. Call in a
+   *  javascript <code>ondragstart</code> handler.
+   */
   Future acceptDanger(int downloadId) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _downloads.callMethod('acceptDanger', [downloadId, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Enable or disable the gray shelf at the bottom of every window associated
+   *  with the current browser profile. The shelf will be disabled as long as
+   *  at least one extension has disabled it. Enabling the shelf while at least
+   *  one other extension has disabled it will return an error through
+   *  $ref:runtime.lastError. Requires the <code>"downloads.shelf"</code>
+   *  permission in addition to the <code>"downloads"</code> permission.
+   */
   void drag(int downloadId) {
     _downloads.callMethod('drag', [downloadId]);
   }
 
+  /**
+   * 
+   */
   void setShelfEnabled(bool enabled) {
     _downloads.callMethod('setShelfEnabled', [enabled]);
   }
 
+  /**
+   * This event fires with the $ref:DownloadItem object when a download
+   *  begins.
+   *  Fires with the <code>downloadId</code> when a download is erased from
+   *  history.
+   *  |downloadId|: The <code>id</code> of the $ref:DownloadItem that was
+   *  erased.
+   */
   Stream<DownloadItem> get onCreated => _onCreated.stream;
 
   final ChromeStreamController<DownloadItem> _onCreated =
       new ChromeStreamController<DownloadItem>.oneArg(_downloads['onCreated'], DownloadItem.create);
 
+  /**
+   * When any of a $ref:DownloadItem's properties except
+   *  <code>bytesReceived</code> and <code>estimatedEndTime</code> changes,
+   *  this event fires with the <code>downloadId</code> and an object
+   *  containing the properties that changed.
+   */
   Stream<int> get onErased => _onErased.stream;
 
   final ChromeStreamController<int> _onErased =
       new ChromeStreamController<int>.oneArg(_downloads['onErased'], selfConverter);
 
+  /**
+   * During the filename determination process, extensions will be given the
+   *  opportunity to override the target $ref:DownloadItem.filename. Each
+   *  extension may not register more than one listener for this event. Each
+   *  listener must call <code>suggest</code> exactly once, either
+   *  synchronously or asynchronously. If the listener calls
+   *  <code>suggest</code> asynchronously, then it must return
+   *  <code>true</code>. If the listener neither calls <code>suggest</code>
+   *  synchronously nor returns <code>true</code>, then <code>suggest</code>
+   *  will be called automatically. The $ref:DownloadItem will not complete
+   *  until all listeners have called <code>suggest</code>. Listeners may call
+   *  <code>suggest</code> without any arguments in order to allow the download
+   *  to use <code>downloadItem.filename</code> for its filename, or pass a
+   *  <code>suggestion</code> object to <code>suggest</code> in order to
+   *  override the target filename. If more than one extension overrides the
+   *  filename, then the last extension installed whose listener passes a
+   *  <code>suggestion</code> object to <code>suggest</code> wins. In order to
+   *  avoid confusion regarding which extension will win, users should not
+   *  install extensions that may conflict. If the download is initiated by
+   *  $ref:download and the target filename is known before the MIME type and
+   *  tentative filename have been determined, pass <code>filename</code> to
+   *  $ref:download instead.
+   */
   Stream<DownloadDelta> get onChanged => _onChanged.stream;
 
   final ChromeStreamController<DownloadDelta> _onChanged =
       new ChromeStreamController<DownloadDelta>.oneArg(_downloads['onChanged'], DownloadDelta.create);
 
+  /**
+   * 
+   */
   Stream<OnDeterminingFilenameEvent> get onDeterminingFilename => _onDeterminingFilename.stream;
 
   final ChromeStreamController<OnDeterminingFilenameEvent> _onDeterminingFilename =
       new ChromeStreamController<OnDeterminingFilenameEvent>.twoArgs(_downloads['onDeterminingFilename'], OnDeterminingFilenameEvent.create);
 }
 
+/**
+ * 
+ */
 class OnDeterminingFilenameEvent {
   static OnDeterminingFilenameEvent create(JsObject downloadItem, JsObject suggest) =>
       new OnDeterminingFilenameEvent(DownloadItem.create(downloadItem), SuggestFilenameCallback.create(suggest));
@@ -118,6 +266,9 @@ class OnDeterminingFilenameEvent {
   OnDeterminingFilenameEvent(this.downloadItem, this.suggest);
 }
 
+/**
+ * 
+ */
 class FilenameConflictAction extends ChromeEnum {
   static const FilenameConflictAction UNIQUIFY = const FilenameConflictAction._('uniquify');
   static const FilenameConflictAction OVERWRITE = const FilenameConflictAction._('overwrite');
@@ -133,6 +284,9 @@ class FilenameConflictAction extends ChromeEnum {
   const FilenameConflictAction._(String str): super(str);
 }
 
+/**
+ * 
+ */
 class HttpMethod extends ChromeEnum {
   static const HttpMethod GET = const HttpMethod._('GET');
   static const HttpMethod POST = const HttpMethod._('POST');
@@ -147,6 +301,9 @@ class HttpMethod extends ChromeEnum {
   const HttpMethod._(String str): super(str);
 }
 
+/**
+ * 
+ */
 class InterruptReason extends ChromeEnum {
   static const InterruptReason FILE_FAILED = const InterruptReason._('FILE_FAILED');
   static const InterruptReason FILE_ACCESS_DENIED = const InterruptReason._('FILE_ACCESS_DENIED');
@@ -180,6 +337,15 @@ class InterruptReason extends ChromeEnum {
   const InterruptReason._(String str): super(str);
 }
 
+/**
+ * <dl><dt>in_progress</dt>
+ *      <dd>The download is currently receiving data from the server.</dd>
+ *      <dt>interrupted</dt>
+ *      <dd>An error broke the connection with the file host.</dd>
+ *      <dt>complete</dt>
+ *      <dd>The download completed successfully.</dd>
+ *  </dl>
+ */
 class DangerType extends ChromeEnum {
   static const DangerType FILE = const DangerType._('file');
   static const DangerType URL = const DangerType._('url');
@@ -200,6 +366,9 @@ class DangerType extends ChromeEnum {
   const DangerType._(String str): super(str);
 }
 
+/**
+ * The state of the process of downloading a file.
+ */
 class State extends ChromeEnum {
   static const State IN_PROGRESS = const State._('in_progress');
   static const State INTERRUPTED = const State._('interrupted');
@@ -215,6 +384,16 @@ class State extends ChromeEnum {
   const State._(String str): super(str);
 }
 
+/**
+ * <dl><dt>uniquify</dt>
+ *      <dd>To avoid duplication, the <code>filename</code> is changed to
+ *      include a counter before the filename extension.</dd>
+ *      <dt>overwrite</dt>
+ *      <dd>The existing file will be overwritten with the new file.</dd>
+ *      <dt>prompt</dt>
+ *      <dd>The user will be prompted with a file chooser dialog.</dd>
+ *  </dl>
+ */
 class HeaderNameValuePair extends ChromeObject {
   static HeaderNameValuePair create(JsObject proxy) => proxy == null ? null : new HeaderNameValuePair.fromProxy(proxy);
 
@@ -232,6 +411,9 @@ class HeaderNameValuePair extends ChromeObject {
   set value(String value) => proxy['value'] = value;
 }
 
+/**
+ * 
+ */
 class FilenameSuggestion extends ChromeObject {
   static FilenameSuggestion create(JsObject proxy) => proxy == null ? null : new FilenameSuggestion.fromProxy(proxy);
 
@@ -249,6 +431,28 @@ class FilenameSuggestion extends ChromeObject {
   set conflictAction(FilenameConflictAction value) => proxy['conflictAction'] = value;
 }
 
+/**
+ * <dl><dt>file</dt>
+ *      <dd>The download's filename is suspicious.</dd>
+ *      <dt>url</dt>
+ *      <dd>The download's URL is known to be malicious.</dd>
+ *      <dt>content</dt>
+ *      <dd>The downloaded file is known to be malicious.</dd>
+ *      <dt>uncommon</dt>
+ *      <dd>The download's URL is not commonly downloaded and could be
+ *      dangerous.</dd>
+ *      <dt>host</dt>
+ *      <dd>The download came from a host known to distribute malicious
+ *      binaries and is likely dangerous.</dd>
+ *      <dt>unwanted</dt>
+ *      <dd>The download is potentially unwanted or unsafe. E.g. it could make
+ *      changes to browser or computer settings.</dd>
+ *      <dt>safe</dt>
+ *      <dd>The download presents no known danger to the user's computer.</dd>
+ *      <dt>accepted</dt>
+ *      <dd>The user has accepted the dangerous download.</dd>
+ *  </dl>
+ */
 class DownloadOptions extends ChromeObject {
   static DownloadOptions create(JsObject proxy) => proxy == null ? null : new DownloadOptions.fromProxy(proxy);
 
@@ -286,6 +490,9 @@ class DownloadOptions extends ChromeObject {
   set body(String value) => proxy['body'] = value;
 }
 
+/**
+ * 
+ */
 class DownloadItem extends ChromeObject {
   static DownloadItem create(JsObject proxy) => proxy == null ? null : new DownloadItem.fromProxy(proxy);
 
@@ -375,6 +582,9 @@ class DownloadItem extends ChromeObject {
   set byExtensionName(String value) => proxy['byExtensionName'] = value;
 }
 
+/**
+ * 
+ */
 class DownloadQuery extends ChromeObject {
   static DownloadQuery create(JsObject proxy) => proxy == null ? null : new DownloadQuery.fromProxy(proxy);
 
@@ -484,6 +694,9 @@ class DownloadQuery extends ChromeObject {
   set exists(bool value) => proxy['exists'] = value;
 }
 
+/**
+ * 
+ */
 class StringDelta extends ChromeObject {
   static StringDelta create(JsObject proxy) => proxy == null ? null : new StringDelta.fromProxy(proxy);
 
@@ -501,6 +714,9 @@ class StringDelta extends ChromeObject {
   set current(String value) => proxy['current'] = value;
 }
 
+/**
+ * 
+ */
 class LongDelta extends ChromeObject {
   static LongDelta create(JsObject proxy) => proxy == null ? null : new LongDelta.fromProxy(proxy);
 
@@ -518,6 +734,9 @@ class LongDelta extends ChromeObject {
   set current(int value) => proxy['current'] = value;
 }
 
+/**
+ * Encapsulates a change in a DownloadItem.
+ */
 class BooleanDelta extends ChromeObject {
   static BooleanDelta create(JsObject proxy) => proxy == null ? null : new BooleanDelta.fromProxy(proxy);
 
@@ -535,6 +754,9 @@ class BooleanDelta extends ChromeObject {
   set current(bool value) => proxy['current'] = value;
 }
 
+/**
+ * 
+ */
 class DownloadDelta extends ChromeObject {
   static DownloadDelta create(JsObject proxy) => proxy == null ? null : new DownloadDelta.fromProxy(proxy);
 
@@ -600,6 +822,9 @@ class DownloadDelta extends ChromeObject {
   set exists(BooleanDelta value) => proxy['exists'] = value;
 }
 
+/**
+ * 
+ */
 class GetFileIconOptions extends ChromeObject {
   static GetFileIconOptions create(JsObject proxy) => proxy == null ? null : new GetFileIconOptions.fromProxy(proxy);
 

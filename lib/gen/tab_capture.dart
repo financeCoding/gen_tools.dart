@@ -12,24 +12,53 @@ class ChromeTabCapture {
 
   ChromeTabCapture._();
 
+  /**
+   * Captures the visible area of the currently active tab.
+   *  This method can only be used on the currently active page after the
+   *  extension has been <em>invoked</em>, similar to the way that
+   *  <a href="activeTab.html">activeTab</a> works.
+   *  Note that Chrome internal pages cannot be captured.
+   *  |options| : Configures the returned media stream.
+   *  |callback| : Callback with either the stream returned or null.
+   *  Returns a list of tabs that have requested capture or are being
+   *  captured, i.e. status != stopped and status != error.
+   *  This allows extensions to inform the user that there is an existing
+   *  tab capture that would prevent a new tab capture from succeeding (or
+   *  to prevent redundant requests for the same tab).
+   */
   Future capture(CaptureOptions options) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _tabCapture.callMethod('capture', [options, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * 
+   */
   Future getCapturedTabs() {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _tabCapture.callMethod('getCapturedTabs', [completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Event fired when the capture status of a tab changes.
+   *  This allows extension authors to keep track of the capture status of
+   *  tabs to keep UI elements like page actions and infobars in sync.
+   */
   Stream<CaptureInfo> get onStatusChanged => _onStatusChanged.stream;
 
   final ChromeStreamController<CaptureInfo> _onStatusChanged =
       new ChromeStreamController<CaptureInfo>.oneArg(_tabCapture['onStatusChanged'], CaptureInfo.create);
 }
 
+/**
+ * Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ *  Use of this source code is governed by a BSD-style license that can be
+ *  found in the LICENSE file.
+ *  Use the <code>chrome.tabCapture</code> API to interact with tab media
+ *  streams.
+ */
 class TabCaptureState extends ChromeEnum {
   static const TabCaptureState PENDING = const TabCaptureState._('pending');
   static const TabCaptureState ACTIVE = const TabCaptureState._('active');
@@ -46,6 +75,11 @@ class TabCaptureState extends ChromeEnum {
   const TabCaptureState._(String str): super(str);
 }
 
+/**
+ * MediaTrackConstraints for the media streams that will be passed to WebRTC.
+ *  See section on MediaTrackConstraints:
+ *  http://dev.w3.org/2011/webrtc/editor/getusermedia.html
+ */
 class CaptureInfo extends ChromeObject {
   static CaptureInfo create(JsObject proxy) => proxy == null ? null : new CaptureInfo.fromProxy(proxy);
 
@@ -67,6 +101,10 @@ class CaptureInfo extends ChromeObject {
   set fullscreen(bool value) => proxy['fullscreen'] = value;
 }
 
+/**
+ * Whether we are requesting tab video and/or audio and the
+ *  MediaTrackConstraints that should be set for these streams.
+ */
 class MediaStreamConstraint extends ChromeObject {
   static MediaStreamConstraint create(JsObject proxy) => proxy == null ? null : new MediaStreamConstraint.fromProxy(proxy);
 
@@ -80,6 +118,9 @@ class MediaStreamConstraint extends ChromeObject {
   set mandatory(var value) => proxy['mandatory'] = value;
 }
 
+/**
+ * 
+ */
 class CaptureOptions extends ChromeObject {
   static CaptureOptions create(JsObject proxy) => proxy == null ? null : new CaptureOptions.fromProxy(proxy);
 

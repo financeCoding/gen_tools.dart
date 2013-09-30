@@ -12,6 +12,9 @@ class ChromeSystemCpu {
 
   ChromeSystemCpu._();
 
+  /**
+   * Queries basic CPU information of the system.
+   */
   Future getInfo() {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _system_cpu.callMethod('getInfo', [completer.callback]);
@@ -19,6 +22,9 @@ class ChromeSystemCpu {
   }
 }
 
+/**
+ * 
+ */
 class CpuInfo extends ChromeObject {
   static CpuInfo create(JsObject proxy) => proxy == null ? null : new CpuInfo.fromProxy(proxy);
 

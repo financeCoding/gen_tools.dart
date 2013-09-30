@@ -12,17 +12,28 @@ class ChromeAppRuntime {
 
   ChromeAppRuntime._();
 
+  /**
+   * Fired when an app is launched from the launcher.
+   *  Fired at Chrome startup to apps that were running when Chrome last shut
+   *  down.
+   */
   Stream<LaunchData> get onLaunched => _onLaunched.stream;
 
   final ChromeStreamController<LaunchData> _onLaunched =
       new ChromeStreamController<LaunchData>.oneArg(_app_runtime['onLaunched'], LaunchData.create);
 
+  /**
+   * 
+   */
   Stream get onRestarted => _onRestarted.stream;
 
   final ChromeStreamController _onRestarted =
       new ChromeStreamController.noArgs(_app_runtime['onRestarted']);
 }
 
+/**
+ * Optional data for the launch.
+ */
 class LaunchItem extends ChromeObject {
   static LaunchItem create(JsObject proxy) => proxy == null ? null : new LaunchItem.fromProxy(proxy);
 
@@ -40,6 +51,9 @@ class LaunchItem extends ChromeObject {
   set type(String value) => proxy['type'] = value;
 }
 
+/**
+ * 
+ */
 class LaunchData extends ChromeObject {
   static LaunchData create(JsObject proxy) => proxy == null ? null : new LaunchData.fromProxy(proxy);
 

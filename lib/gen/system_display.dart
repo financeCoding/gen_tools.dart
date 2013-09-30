@@ -12,24 +12,46 @@ class ChromeSystemDisplay {
 
   ChromeSystemDisplay._();
 
+  /**
+   * Get the information of all attached display devices.
+   *  Updates the properties for the display specified by |id|, according to
+   *  the information provided in |info|. On failure, $ref:runtime.lastError
+   *  will be set.
+   *  |id|: The display's unique identifier.
+   *  |info|: The information about display properties that should be changed.
+   *      A property will be changed only if a new value for it is specified in
+   *      |info|.
+   *  |callback|: Empty function called when the function finishes. To find out
+   *      whether the function succeeded, $ref:runtime.lastError should be
+   *      queried.
+   */
   Future getInfo() {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _system_display.callMethod('getInfo', [completer.callback]);
     return completer.future;
   }
 
+  /**
+   * 
+   */
   Future setDisplayProperties(String id, DisplayProperties info) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _system_display.callMethod('setDisplayProperties', [id, info, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Fired when anything changes to the display configuration.
+   */
   Stream get onDisplayChanged => _onDisplayChanged.stream;
 
   final ChromeStreamController _onDisplayChanged =
       new ChromeStreamController.noArgs(_system_display['onDisplayChanged']);
 }
 
+/**
+ * 
+ */
 class Insets extends ChromeObject {
   static Insets create(JsObject proxy) => proxy == null ? null : new Insets.fromProxy(proxy);
 
@@ -55,6 +77,9 @@ class Insets extends ChromeObject {
   set bottom(int value) => proxy['bottom'] = value;
 }
 
+/**
+ * 
+ */
 class DisplayUnitInfo extends ChromeObject {
   static DisplayUnitInfo create(JsObject proxy) => proxy == null ? null : new DisplayUnitInfo.fromProxy(proxy);
 
@@ -112,6 +137,9 @@ class DisplayUnitInfo extends ChromeObject {
   set workArea(Bounds value) => proxy['workArea'] = value;
 }
 
+/**
+ * 
+ */
 class DisplayProperties extends ChromeObject {
   static DisplayProperties create(JsObject proxy) => proxy == null ? null : new DisplayProperties.fromProxy(proxy);
 

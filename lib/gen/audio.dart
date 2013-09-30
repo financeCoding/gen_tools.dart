@@ -12,30 +12,46 @@ class ChromeAudio {
 
   ChromeAudio._();
 
+  /**
+   * Get the information of all audio output and input devices.
+   *  Select a subset of audio devices as active.
+   */
   Future getInfo() {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _audio.callMethod('getInfo', [completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Sets the properties for the input or output device.
+   */
   Future setActiveDevices(String ids) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _audio.callMethod('setActiveDevices', [ids, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * 
+   */
   Future setProperties(String id, DeviceProperties properties) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _audio.callMethod('setProperties', [id, properties, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Fired when anything changes to the audio device configuration.
+   */
   Stream get onDeviceChanged => _onDeviceChanged.stream;
 
   final ChromeStreamController _onDeviceChanged =
       new ChromeStreamController.noArgs(_audio['onDeviceChanged']);
 }
 
+/**
+ * 
+ */
 class OutputDeviceInfo extends ChromeObject {
   static OutputDeviceInfo create(JsObject proxy) => proxy == null ? null : new OutputDeviceInfo.fromProxy(proxy);
 
@@ -65,6 +81,9 @@ class OutputDeviceInfo extends ChromeObject {
   set volume(double value) => proxy['volume'] = value;
 }
 
+/**
+ * 
+ */
 class InputDeviceInfo extends ChromeObject {
   static InputDeviceInfo create(JsObject proxy) => proxy == null ? null : new InputDeviceInfo.fromProxy(proxy);
 
@@ -94,6 +113,9 @@ class InputDeviceInfo extends ChromeObject {
   set gain(double value) => proxy['gain'] = value;
 }
 
+/**
+ * 
+ */
 class DeviceProperties extends ChromeObject {
   static DeviceProperties create(JsObject proxy) => proxy == null ? null : new DeviceProperties.fromProxy(proxy);
 

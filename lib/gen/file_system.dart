@@ -12,47 +12,104 @@ class ChromeFileSystem {
 
   ChromeFileSystem._();
 
+  /**
+   * Get the display path of an Entry object. The display path is based on
+   *  the full path of the file or directory on the local file system, but may
+   *  be made more readable for display purposes.
+   *  Get a writable Entry from another Entry. This call will fail if the
+   *  application does not have the 'write' permission under 'fileSystem'. If
+   *  entry is a DirectoryEntry, this call will fail if the application does
+   *  not have the 'directory' permission under 'fileSystem'.
+   */
   Future getDisplayPath(var entry) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _fileSystem.callMethod('getDisplayPath', [entry, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Gets whether this Entry is writable or not.
+   */
   Future getWritableEntry(var entry) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _fileSystem.callMethod('getWritableEntry', [entry, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Ask the user to choose a file or directory.
+   */
   Future isWritableEntry(var entry) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _fileSystem.callMethod('isWritableEntry', [entry, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Returns the file entry with the given id if it can be restored. This call
+   *  will fail otherwise. This method is new in Chrome 30.
+   */
   Future chooseEntry([ChooseEntryOptions options]) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _fileSystem.callMethod('chooseEntry', [options, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Returns whether a file entry for the given id can be restored, i.e.
+   *  whether restoreEntry would succeed with this id now. This method is new
+   *  in Chrome 30.
+   */
   Future restoreEntry(String id) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _fileSystem.callMethod('restoreEntry', [id, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Returns an id that can be passed to restoreEntry to regain access to a
+   *  given file entry. Only the 500 most recently used entries are retained,
+   *  where calls to retainEntry and restoreEntry count as use. If the app has
+   *  the 'retainEntries' permission under 'fileSystem' (currently restricted
+   *  to dev channel), entries are retained indefinitely. Otherwise, entries
+   *  are retained only while the app is running and across restarts. This
+   *  method is new in Chrome 30.
+   */
   Future isRestorable(String id) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _fileSystem.callMethod('isRestorable', [id, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * 
+   */
   void retainEntry(var entry) {
     _fileSystem.callMethod('retainEntry', [entry]);
   }
 }
 
+/**
+ * Prompts the user to open an existing file and returns a FileEntry on
+ *  success. From Chrome 31 onwards, the FileEntry will be writable if the
+ *  application has the 'write' permission under 'fileSystem'; otherwise, the
+ *  FileEntry will be read-only.
+ *  Prompts the user to open an existing file and returns a FileEntry on
+ *  success. From Chrome 31 onwards, the FileEntry will be writable if the
+ *  application has the 'write' permission under 'fileSystem'; otherwise, the
+ *  FileEntry will be read-only.
+ *  Prompts the user to open an existing file and returns a writable
+ *  FileEntry on success. Calls using this type will fail unless the
+ *  application has the 'write' permission under 'fileSystem'.
+ *  Prompts the user to open an existing file or a new file and returns a
+ *  writable FileEntry on success. Calls using this type will fail unless the
+ *  application has the 'write' permission under 'fileSystem'.
+ *  Prompts the user to open a directory and returns a DirectoryEntry on
+ *  success. Calls using this type will fail unless the application has the
+ *  'directory' permission under 'fileSystem'. If the application has the
+ *  'write' permission under 'fileSystem', the returned DirectoryEntry will
+ *  be writable; otherwise it will be read-only. New in Chrome 31.
+ */
 class ChooseEntryType extends ChromeEnum {
   static const ChooseEntryType OPENFILE = const ChooseEntryType._('openFile');
   static const ChooseEntryType OPENWRITABLEFILE = const ChooseEntryType._('openWritableFile');
@@ -69,6 +126,9 @@ class ChooseEntryType extends ChromeEnum {
   const ChooseEntryType._(String str): super(str);
 }
 
+/**
+ * 
+ */
 class AcceptOption extends ChromeObject {
   static AcceptOption create(JsObject proxy) => proxy == null ? null : new AcceptOption.fromProxy(proxy);
 
@@ -90,6 +150,9 @@ class AcceptOption extends ChromeObject {
   set extensions(String value) => proxy['extensions'] = value;
 }
 
+/**
+ * 
+ */
 class ChooseEntryOptions extends ChromeObject {
   static ChooseEntryOptions create(JsObject proxy) => proxy == null ? null : new ChooseEntryOptions.fromProxy(proxy);
 

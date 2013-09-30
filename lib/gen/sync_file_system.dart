@@ -12,59 +12,127 @@ class ChromeSyncFileSystem {
 
   ChromeSyncFileSystem._();
 
+  /**
+   * A callback type for getUsageAndQuota.
+   *  Returns true if operation was successful.
+   *  A callback type for getFileStatus.
+   *  A callback type for getFileStatuses.
+   *  A callback type for getServiceStatus.
+   *  A callback type for getConflictResolutionPolicy.
+   *  A generic result callback to indicate success or failure.
+   *  Returns a syncable filesystem backed by Google Drive.
+   *  The returned <code>DOMFileSystem</code> instance can be operated on
+   *  in the same way as the Temporary and Persistant file systems (see
+   * <a
+   * href="http://www.w3.org/TR/file-system-api/">http://www.w3.org/TR/file-system-api/</a>).
+   *  Calling this multiple times from
+   *  the same app will return the same handle to the same file system.
+   *  Sets the default conflict resolution policy
+   *  for the <code>'syncable'</code> file storage for the app.
+   *  By default it is set to <code>'last_write_win'</code>.
+   *  When conflict resolution policy is set to <code>'last_write_win'</code>
+   *  conflicts for existing files are automatically resolved next time
+   *  the file is updated.
+   *  |callback| can be optionally given to know if the request has
+   *  succeeded or not.
+   */
   Future requestFileSystem() {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _syncFileSystem.callMethod('requestFileSystem', [completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Gets the current conflict resolution policy.
+   */
   Future setConflictResolutionPolicy(ConflictResolutionPolicy policy) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _syncFileSystem.callMethod('setConflictResolutionPolicy', [policy, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Returns the current usage and quota in bytes
+   *  for the <code>'syncable'</code> file storage for the app.
+   */
   Future getConflictResolutionPolicy() {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _syncFileSystem.callMethod('getConflictResolutionPolicy', [completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Returns the $ref:FileStatus for the given <code>fileEntry</code>.
+   *  The status value can be <code>'synced'</code>,
+   *  <code>'pending'</code> or <code>'conflicting'</code>.
+   *  Note that <code>'conflicting'</code> state only happens when
+   *  the service's conflict resolution policy is set to <code>'manual'</code>.
+   */
   Future getUsageAndQuota(var fileSystem) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _syncFileSystem.callMethod('getUsageAndQuota', [fileSystem, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Returns each $ref:FileStatus for the given <code>fileEntry</code> array.
+   *  Typically called with the result from dirReader.readEntries().
+   */
   Future getFileStatus(var fileEntry) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _syncFileSystem.callMethod('getFileStatus', [fileEntry, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Returns the current sync backend status.
+   */
   Future getFileStatuses(var fileEntries) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _syncFileSystem.callMethod('getFileStatuses', [fileEntries, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * 
+   */
   Future getServiceStatus() {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _syncFileSystem.callMethod('getServiceStatus', [completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Fired when an error or other status change has happened in the
+   *  sync backend (for example, when the sync is temporarily disabled due to
+   *  network or authentication error).
+   *  Fired when a file has been updated by the background sync service.
+   */
   Stream<ServiceInfo> get onServiceStatusChanged => _onServiceStatusChanged.stream;
 
   final ChromeStreamController<ServiceInfo> _onServiceStatusChanged =
       new ChromeStreamController<ServiceInfo>.oneArg(_syncFileSystem['onServiceStatusChanged'], ServiceInfo.create);
 
+  /**
+   * 
+   */
   Stream<FileInfo> get onFileStatusChanged => _onFileStatusChanged.stream;
 
   final ChromeStreamController<FileInfo> _onFileStatusChanged =
       new ChromeStreamController<FileInfo>.oneArg(_syncFileSystem['onFileStatusChanged'], FileInfo.create);
 }
 
+/**
+ * Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ *  Use of this source code is governed by a BSD-style license that can be
+ *  found in the LICENSE file.
+ *  Use the <code>chrome.syncFileSystem</code> API to save and synchronize data
+ *  on Google Drive. This API is NOT for accessing arbitrary user docs stored in
+ *  Google Drive. It provides app-specific syncable storage for offline and
+ *  caching usage so that the same data can be available across different
+ *  clients. Read <a href="app_storage.html">Manage Data</a> for more on using
+ *  this API.
+ */
 class SyncAction extends ChromeEnum {
   static const SyncAction ADDED = const SyncAction._('added');
   static const SyncAction UPDATED = const SyncAction._('updated');
@@ -80,6 +148,24 @@ class SyncAction extends ChromeEnum {
   const SyncAction._(String str): super(str);
 }
 
+/**
+ * The sync service is being initialized (e.g. restoring data from the
+ *  database, checking connectivity and authenticating to the service etc).
+ *  The sync service is being initialized (e.g. restoring data from the
+ *  database, checking connectivity and authenticating to the service etc).
+ *  The sync service is up and running.
+ *  The sync service is not synchronizing files because the remote service
+ *  needs to be authenticated by the user to proceed.
+ *  The sync service is not synchronizing files because the remote service
+ *  is (temporarily) unavailable due to some recoverable errors, e.g.
+ *  network is offline, the remote service is down or not
+ *  reachable etc. More details should be given by |description| parameter
+ *  in OnServiceInfoUpdated (which could contain service-specific details).
+ *  The sync service is disabled and the content will never sync.
+ *  (E.g. this could happen when the user has no account on
+ *  the remote service or the sync service has had an unrecoverable
+ *  error.)
+ */
 class ServiceStatus extends ChromeEnum {
   static const ServiceStatus INITIALIZING = const ServiceStatus._('initializing');
   static const ServiceStatus RUNNING = const ServiceStatus._('running');
@@ -97,6 +183,12 @@ class ServiceStatus extends ChromeEnum {
   const ServiceStatus._(String str): super(str);
 }
 
+/**
+ * Not conflicting and has no pending local changes.
+ *  Not conflicting and has no pending local changes.
+ *  Has one or more pending local changes that haven't been synchronized.
+ *  File conflicts with remote version and must be resolved manually.
+ */
 class FileStatus extends ChromeEnum {
   static const FileStatus SYNCED = const FileStatus._('synced');
   static const FileStatus PENDING = const FileStatus._('pending');
@@ -112,6 +204,9 @@ class FileStatus extends ChromeEnum {
   const FileStatus._(String str): super(str);
 }
 
+/**
+ * 
+ */
 class SyncDirection extends ChromeEnum {
   static const SyncDirection LOCAL_TO_REMOTE = const SyncDirection._('local_to_remote');
   static const SyncDirection REMOTE_TO_LOCAL = const SyncDirection._('remote_to_local');
@@ -126,6 +221,9 @@ class SyncDirection extends ChromeEnum {
   const SyncDirection._(String str): super(str);
 }
 
+/**
+ * 
+ */
 class ConflictResolutionPolicy extends ChromeEnum {
   static const ConflictResolutionPolicy LAST_WRITE_WIN = const ConflictResolutionPolicy._('last_write_win');
   static const ConflictResolutionPolicy MANUAL = const ConflictResolutionPolicy._('manual');
@@ -140,6 +238,9 @@ class ConflictResolutionPolicy extends ChromeEnum {
   const ConflictResolutionPolicy._(String str): super(str);
 }
 
+/**
+ * 
+ */
 class FileInfo extends ChromeObject {
   static FileInfo create(JsObject proxy) => proxy == null ? null : new FileInfo.fromProxy(proxy);
 
@@ -165,6 +266,9 @@ class FileInfo extends ChromeObject {
   set direction(SyncDirection value) => proxy['direction'] = value;
 }
 
+/**
+ * 
+ */
 class FileStatusInfo extends ChromeObject {
   static FileStatusInfo create(JsObject proxy) => proxy == null ? null : new FileStatusInfo.fromProxy(proxy);
 
@@ -186,6 +290,9 @@ class FileStatusInfo extends ChromeObject {
   set error(String value) => proxy['error'] = value;
 }
 
+/**
+ * 
+ */
 class StorageInfo extends ChromeObject {
   static StorageInfo create(JsObject proxy) => proxy == null ? null : new StorageInfo.fromProxy(proxy);
 
@@ -203,6 +310,9 @@ class StorageInfo extends ChromeObject {
   set quotaBytes(int value) => proxy['quotaBytes'] = value;
 }
 
+/**
+ * A callback type for requestFileSystem.
+ */
 class ServiceInfo extends ChromeObject {
   static ServiceInfo create(JsObject proxy) => proxy == null ? null : new ServiceInfo.fromProxy(proxy);
 

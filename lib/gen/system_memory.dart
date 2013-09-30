@@ -12,6 +12,9 @@ class ChromeSystemMemory {
 
   ChromeSystemMemory._();
 
+  /**
+   * Get physical memory information.
+   */
   Future getInfo() {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _system_memory.callMethod('getInfo', [completer.callback]);
@@ -19,6 +22,9 @@ class ChromeSystemMemory {
   }
 }
 
+/**
+ * 
+ */
 class MemoryInfo extends ChromeObject {
   static MemoryInfo create(JsObject proxy) => proxy == null ? null : new MemoryInfo.fromProxy(proxy);
 

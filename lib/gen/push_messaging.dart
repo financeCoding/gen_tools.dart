@@ -12,18 +12,33 @@ class ChromePushMessaging {
 
   ChromePushMessaging._();
 
+  /**
+   * Retrieves the channel ID associated with this app or extension.
+   *  Typically an app or extension will want to send this value
+   *  to its application server so the server can use it
+   *  to trigger push messages back to the app or extension.
+   *  If the interactive flag is set, we will ask the user to log in
+   *  when they are not already logged in.
+   */
   Future getChannelId([bool interactive]) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _pushMessaging.callMethod('getChannelId', [interactive, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Fired when a push message has been received.
+   *  |message| : The details associated with the message.
+   */
   Stream<Message> get onMessage => _onMessage.stream;
 
   final ChromeStreamController<Message> _onMessage =
       new ChromeStreamController<Message>.oneArg(_pushMessaging['onMessage'], Message.create);
 }
 
+/**
+ * 
+ */
 class Message extends ChromeObject {
   static Message create(JsObject proxy) => proxy == null ? null : new Message.fromProxy(proxy);
 
@@ -41,6 +56,9 @@ class Message extends ChromeObject {
   set payload(String value) => proxy['payload'] = value;
 }
 
+/**
+ * 
+ */
 class ChannelIdResult extends ChromeObject {
   static ChannelIdResult create(JsObject proxy) => proxy == null ? null : new ChannelIdResult.fromProxy(proxy);
 

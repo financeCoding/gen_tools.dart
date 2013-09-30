@@ -12,25 +12,49 @@ class ChromeLocation {
 
   ChromeLocation._();
 
+  /**
+   * Starts a location watching request.
+   *  |name| : Optional name to identify this request. Defaults to the empty
+   *  string.
+   *  |requestInfo| : Optional parameters for this request.
+   *  Ends a location watching request.
+   *  |name| : Optional name to identify the request to remove. Defaults to the
+   *  empty string.
+   */
   void watchLocation(String name, WatchLocationRequestInfo requestInfo) {
     _location.callMethod('watchLocation', [name, requestInfo]);
   }
 
+  /**
+   * 
+   */
   void clearWatch(String name) {
     _location.callMethod('clearWatch', [name]);
   }
 
+  /**
+   * Fired when a location change is detected.
+   *  |location| : An object containing matching events and new location.
+   *  Fired when detecting location in not possible.
+   *  |error| : Human-readable error description.
+   */
   Stream<Location> get onLocationUpdate => _onLocationUpdate.stream;
 
   final ChromeStreamController<Location> _onLocationUpdate =
       new ChromeStreamController<Location>.oneArg(_location['onLocationUpdate'], Location.create);
 
+  /**
+   * 
+   */
   Stream<String> get onLocationError => _onLocationError.stream;
 
   final ChromeStreamController<String> _onLocationError =
       new ChromeStreamController<String>.oneArg(_location['onLocationError'], selfConverter);
 }
 
+/**
+ * Parameter of onLocationUpdate event's listener.
+ */
 class Coordinates extends ChromeObject {
   static Coordinates create(JsObject proxy) => proxy == null ? null : new Coordinates.fromProxy(proxy);
 
@@ -68,6 +92,9 @@ class Coordinates extends ChromeObject {
   set speed(double value) => proxy['speed'] = value;
 }
 
+/**
+ * Parameter of watchLocation call.
+ */
 class Location extends ChromeObject {
   static Location create(JsObject proxy) => proxy == null ? null : new Location.fromProxy(proxy);
 
@@ -89,6 +116,9 @@ class Location extends ChromeObject {
   set timestamp(double value) => proxy['timestamp'] = value;
 }
 
+/**
+ * TODO(vadimt): Consider adding getWatch() and getAllWatches().
+ */
 class WatchLocationRequestInfo extends ChromeObject {
   static WatchLocationRequestInfo create(JsObject proxy) => proxy == null ? null : new WatchLocationRequestInfo.fromProxy(proxy);
 

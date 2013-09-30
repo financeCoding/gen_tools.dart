@@ -12,48 +12,92 @@ class ChromeSerial {
 
   ChromeSerial._();
 
+  /**
+   * Returns true if operation was successful.
+   *  Returns names of valid ports on this machine, each of which is likely to
+   *  be valid to pass as the port argument to open(). The list is regenerated
+   *  each time this method is called, as port validity is dynamic.
+   * 
+   *  |callback| : Called with the list of ports.
+   *  Opens a connection to the given serial port.
+   *  |port| : The name of the serial port to open.
+   *  |options| : Connection options.
+   *  |callback| : Called when the connection has been opened.
+   */
   Future getPorts() {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _serial.callMethod('getPorts', [completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Closes an open connection.
+   *  |connectionId| : The id of the opened connection.
+   *  |callback| : Called when the connection has been closed.
+   */
   Future open(String port, [OpenOptions options]) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _serial.callMethod('open', [port, options, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Reads a byte from the given connection.
+   *  |connectionId| : The id of the connection.
+   *  |bytesToRead| : The number of bytes to read.
+   *  |callback| : Called when all the requested bytes have been read or
+   *               when the read blocks.
+   */
   Future close(int connectionId) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _serial.callMethod('close', [connectionId, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Writes a string to the given connection.
+   *  |connectionId| : The id of the connection.
+   *  |data| : The string to write.
+   *  |callback| : Called when the string has been written.
+   */
   Future read(int connectionId, int bytesToRead) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _serial.callMethod('read', [connectionId, bytesToRead, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * Flushes all bytes in the given connection's input and output buffers.
+   *  |connectionId| : The id of the connection.
+   *  |callback| : Called when the flush is complete.
+   */
   Future write(int connectionId, ArrayBuffer data) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _serial.callMethod('write', [connectionId, data, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * 
+   */
   Future flush(int connectionId) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _serial.callMethod('flush', [connectionId, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * 
+   */
   Future getControlSignals(int connectionId) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _serial.callMethod('getControlSignals', [connectionId, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * 
+   */
   Future setControlSignals(int connectionId, ControlSignalOptions options) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _serial.callMethod('setControlSignals', [connectionId, options, completer.callback]);
@@ -61,6 +105,13 @@ class ChromeSerial {
   }
 }
 
+/**
+ * Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ *  Use of this source code is governed by a BSD-style license that can be
+ *  found in the LICENSE file.
+ *  Use the <code>chrome.serial</code> API to read from and write to a device
+ *  connected to a serial port.
+ */
 class DataBit extends ChromeEnum {
   static const DataBit SEVENBIT = const DataBit._('sevenbit');
   static const DataBit EIGHTBIT = const DataBit._('eightbit');
@@ -75,6 +126,9 @@ class DataBit extends ChromeEnum {
   const DataBit._(String str): super(str);
 }
 
+/**
+ * 
+ */
 class ParityBit extends ChromeEnum {
   static const ParityBit NOPARITY = const ParityBit._('noparity');
   static const ParityBit ODDPARITY = const ParityBit._('oddparity');
@@ -90,6 +144,9 @@ class ParityBit extends ChromeEnum {
   const ParityBit._(String str): super(str);
 }
 
+/**
+ * 
+ */
 class StopBit extends ChromeEnum {
   static const StopBit ONESTOPBIT = const StopBit._('onestopbit');
   static const StopBit TWOSTOPBIT = const StopBit._('twostopbit');
@@ -104,6 +161,9 @@ class StopBit extends ChromeEnum {
   const StopBit._(String str): super(str);
 }
 
+/**
+ * 
+ */
 class OpenOptions extends ChromeObject {
   static OpenOptions create(JsObject proxy) => proxy == null ? null : new OpenOptions.fromProxy(proxy);
 
@@ -129,6 +189,9 @@ class OpenOptions extends ChromeObject {
   set stopBit(StopBit value) => proxy['stopBit'] = value;
 }
 
+/**
+ * 
+ */
 class OpenInfo extends ChromeObject {
   static OpenInfo create(JsObject proxy) => proxy == null ? null : new OpenInfo.fromProxy(proxy);
 
@@ -142,6 +205,9 @@ class OpenInfo extends ChromeObject {
   set connectionId(int value) => proxy['connectionId'] = value;
 }
 
+/**
+ * 
+ */
 class SerialReadInfo extends ChromeObject {
   static SerialReadInfo create(JsObject proxy) => proxy == null ? null : new SerialReadInfo.fromProxy(proxy);
 
@@ -159,6 +225,9 @@ class SerialReadInfo extends ChromeObject {
   set data(ArrayBuffer value) => proxy['data'] = value;
 }
 
+/**
+ * 
+ */
 class SerialWriteInfo extends ChromeObject {
   static SerialWriteInfo create(JsObject proxy) => proxy == null ? null : new SerialWriteInfo.fromProxy(proxy);
 
@@ -172,6 +241,9 @@ class SerialWriteInfo extends ChromeObject {
   set bytesWritten(int value) => proxy['bytesWritten'] = value;
 }
 
+/**
+ * Returns a snapshot of current control signals.
+ */
 class ControlSignalOptions extends ChromeObject {
   static ControlSignalOptions create(JsObject proxy) => proxy == null ? null : new ControlSignalOptions.fromProxy(proxy);
 

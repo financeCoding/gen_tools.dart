@@ -12,17 +12,38 @@ class ChromeMediaGalleries {
 
   ChromeMediaGalleries._();
 
+  /**
+   * Get the media galleries configured in this user agent. If none are
+   *  configured or available, the callback will receive an empty array.
+   *  Get metadata about a specific media file system.
+   */
   Future getMediaFileSystems([MediaFileSystemsDetails details]) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _mediaGalleries.callMethod('getMediaFileSystems', [details, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * 
+   */
   void getMediaFileSystemMetadata(var mediaFileSystem) {
     _mediaGalleries.callMethod('getMediaFileSystemMetadata', [mediaFileSystem]);
   }
 }
 
+/**
+ * Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ *  Use of this source code is governed by a BSD-style license that can be
+ *  found in the LICENSE file.
+ * Use the <code>chrome.mediaGalleries</code> API to access media files
+ * (images,
+ *  video, audio) from the user's local disks (with the user's consent).
+ *  Do not act interactively.
+ *  Do not act interactively.
+ *  Ask the user to manage permitted media galleries.
+ *  Ask the user to manage permitted galleries only if the return set would
+ *  otherwise be empty.
+ */
 class GetMediaFileSystemsInteractivity extends ChromeEnum {
   static const GetMediaFileSystemsInteractivity NO = const GetMediaFileSystemsInteractivity._('no');
   static const GetMediaFileSystemsInteractivity YES = const GetMediaFileSystemsInteractivity._('yes');
@@ -38,6 +59,9 @@ class GetMediaFileSystemsInteractivity extends ChromeEnum {
   const GetMediaFileSystemsInteractivity._(String str): super(str);
 }
 
+/**
+ * 
+ */
 class MediaFileSystemsDetails extends ChromeObject {
   static MediaFileSystemsDetails create(JsObject proxy) => proxy == null ? null : new MediaFileSystemsDetails.fromProxy(proxy);
 
@@ -51,6 +75,9 @@ class MediaFileSystemsDetails extends ChromeObject {
   set interactive(GetMediaFileSystemsInteractivity value) => proxy['interactive'] = value;
 }
 
+/**
+ * 
+ */
 class MediaFileSystemMetadata extends ChromeObject {
   static MediaFileSystemMetadata create(JsObject proxy) => proxy == null ? null : new MediaFileSystemMetadata.fromProxy(proxy);
 

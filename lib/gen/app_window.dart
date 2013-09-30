@@ -12,51 +12,104 @@ class ChromeAppWindow {
 
   ChromeAppWindow._();
 
+  /**
+   * The size and position of a window can be specified in a number of
+   *  different ways. The most simple option is not specifying anything at
+   *  all, in which case a default size and platform dependent position will
+   *  be used.
+   * 
+   *  Another option is to use the bounds property, which will put the window
+   *  at the specified coordinates with the specified size. If the window has
+   *  a frame, it's total size will be the size given plus the size of the
+   *  frame; that is, the size in bounds is the content size, not the window
+   *  size.
+   * 
+   *  To automatically remember the positions of windows you can give them ids.
+   *  If a window has an id, This id is used to remember the size and position
+   *  of the window whenever it is moved or resized. This size and position is
+   *  then used instead of the specified bounds on subsequent opening of a
+   *  window with the same id. If you need to open a window with an id at a
+   *  location other than the remembered default, you can create it hidden,
+   *  move it to the desired location, then show it.
+   *  Returns an $ref:AppWindow object for the
+   *  current script context (ie JavaScript 'window' object). This can also be
+   *  called on a handle to a script context for another page, for example:
+   *  otherWindow.chrome.app.window.current().
+   */
   Future create(String url, [CreateWindowOptions options]) {
     ChromeCompleter completer = new ChromeCompleter.noArgs();
     _app_window.callMethod('create', [url, options, completer.callback]);
     return completer.future;
   }
 
+  /**
+   * 
+   */
   void current() {
     _app_window.callMethod('current');
   }
 
+  /**
+   * 
+   */
   void initializeAppWindow(var state) {
     _app_window.callMethod('initializeAppWindow', [state]);
   }
 
+  /**
+   * Fired when the window is resized.
+   *  Fired when the window is closed.
+   */
   Stream get onBoundsChanged => _onBoundsChanged.stream;
 
   final ChromeStreamController _onBoundsChanged =
       new ChromeStreamController.noArgs(_app_window['onBoundsChanged']);
 
+  /**
+   * Fired when the window is fullscreened.
+   */
   Stream get onClosed => _onClosed.stream;
 
   final ChromeStreamController _onClosed =
       new ChromeStreamController.noArgs(_app_window['onClosed']);
 
+  /**
+   * Fired when the window is maximized.
+   */
   Stream get onFullscreened => _onFullscreened.stream;
 
   final ChromeStreamController _onFullscreened =
       new ChromeStreamController.noArgs(_app_window['onFullscreened']);
 
+  /**
+   * Fired when the window is minimized.
+   */
   Stream get onMaximized => _onMaximized.stream;
 
   final ChromeStreamController _onMaximized =
       new ChromeStreamController.noArgs(_app_window['onMaximized']);
 
+  /**
+   * Fired when the window is restored from being minimized or maximized.
+   */
   Stream get onMinimized => _onMinimized.stream;
 
   final ChromeStreamController _onMinimized =
       new ChromeStreamController.noArgs(_app_window['onMinimized']);
 
+  /**
+   * 
+   */
   Stream get onRestored => _onRestored.stream;
 
   final ChromeStreamController _onRestored =
       new ChromeStreamController.noArgs(_app_window['onRestored']);
 }
 
+/**
+ * 'shell' is the default window type. 'panel' is managed by the OS
+ *  (Currently experimental, Ash only).
+ */
 class State extends ChromeEnum {
   static const State NORMAL = const State._('normal');
   static const State FULLSCREEN = const State._('fullscreen');
@@ -73,6 +126,9 @@ class State extends ChromeEnum {
   const State._(String str): super(str);
 }
 
+/**
+ * 
+ */
 class WindowType extends ChromeEnum {
   static const WindowType SHELL = const WindowType._('shell');
   static const WindowType PANEL = const WindowType._('panel');
@@ -87,6 +143,15 @@ class WindowType extends ChromeEnum {
   const WindowType._(String str): super(str);
 }
 
+/**
+ * Called in the creating window (parent) before the load event is called in
+ *  the created window (child). The parent can set fields or functions on the
+ *  child usable from onload. E.g. background.js:<br>
+ *  <code>function(created_window) { created_window.contentWindow.foo =
+ *  function () { }; };</code>
+ *  <br>window.js:<br>
+ *  <code>window.onload = function () { foo(); }</code>
+ */
 class CreateWindowOptions extends ChromeObject {
   static CreateWindowOptions create(JsObject proxy) => proxy == null ? null : new CreateWindowOptions.fromProxy(proxy);
 
@@ -180,6 +245,9 @@ class CreateWindowOptions extends ChromeObject {
   set singleton(bool value) => proxy['singleton'] = value;
 }
 
+/**
+ * 
+ */
 class AppWindow extends ChromeObject {
   static AppWindow create(JsObject proxy) => proxy == null ? null : new AppWindow.fromProxy(proxy);
 
