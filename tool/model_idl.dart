@@ -42,6 +42,7 @@ class IDLCollectorChrome implements IDLCollector {
     } else if (l[1] == "Events") {
       _toEvent(IDLFunction f) {
         IDLEvent event = new IDLEvent(f.name);
+        event.description = f.description;
         event.params.addAll(f.parameters);
         return event;
       };
@@ -408,6 +409,7 @@ ChromeDeclaredType _convertDeclaredType(IDLDeclaredType idlDeclaredType) {
   ChromeDeclaredType chromeDeclaredType = new ChromeDeclaredType();
 
   chromeDeclaredType.name = idlDeclaredType.name;
+  chromeDeclaredType.documentation = idlDeclaredType.description;
   chromeDeclaredType.properties = idlDeclaredType.members.map(_convertProperty).toList();
 
   int index = chromeDeclaredType.name.lastIndexOf('.');
@@ -430,6 +432,7 @@ ChromeProperty _convertProperty(IDLProperty idlProperty) {
 ChromeEnumType _convertEnum(IDLEnum idlProperty) {
   ChromeEnumType chromeEnumType = new ChromeEnumType();
   chromeEnumType.name = idlProperty.name;
+  chromeEnumType.documentation = idlProperty.description;
   idlProperty.enumValues.forEach((IDLProperty value) {
     ChromeEnumEntry chromeEnumEntry = new ChromeEnumEntry();
     chromeEnumEntry.name = value.name;
@@ -441,6 +444,7 @@ ChromeEnumType _convertEnum(IDLEnum idlProperty) {
 ChromeMethod _convertMethod(IDLFunction idlMethod) {
   ChromeMethod chromeMethod = new ChromeMethod();
   chromeMethod.name = idlMethod.name;
+  chromeMethod.documentation = idlMethod.description;
   chromeMethod.returns = _convertType(idlMethod.returnType);
   chromeMethod.params = idlMethod.parameters.map(_convertParameter).toList();
 
@@ -477,6 +481,7 @@ ChromeType _convertToFuture(ChromeType chromeType) {
 ChromeEvent _convertEvent(IDLEvent idlEvent) {
   ChromeEvent chromeEvent = new ChromeEvent();
   chromeEvent.name = idlEvent.name;
+  chromeEvent.documentation = idlEvent.description;
   chromeEvent.type = ChromeType.VAR.type;
   chromeEvent.parameters = idlEvent.params.map(_convertParameter).toList();
   return chromeEvent;
