@@ -319,7 +319,7 @@ VALUE};""");
 }
 
 void chromeIDLParserCallbackParameterTypeTests() {
-  test('callback parameter with array', () {
+  test('callback parameter type with array', () {
     ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
     IDLType callbackParameterType = chromeIDLParser.callbackParameterType
         .parse("Device[]");
@@ -328,13 +328,56 @@ void chromeIDLParserCallbackParameterTypeTests() {
     expect(callbackParameterType.isArray, isTrue);
   });
 
-  test('callback parameter without array', () {
+  test('callback parameter type without array', () {
     ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
     IDLType callbackParameterType = chromeIDLParser.callbackParameterType
         .parse("Device");
     expect(callbackParameterType, isNotNull);
     expect(callbackParameterType.name, equals("Device"));
     expect(callbackParameterType.isArray, isFalse);
+  });
+}
+
+void chromeIDLParserCallbackParameterTests() {
+  test('callback parameter with attribute', () {
+    ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
+    IDLParameter callbackParameter = chromeIDLParser.callbackParameters
+        .parse("[instanceOf=Entry] object entry");
+
+    expect(callbackParameter, isNotNull);
+    expect(callbackParameter.name, equals("entry"));
+    expect(callbackParameter.isCallback, isFalse);
+    expect(callbackParameter.isOptional, isFalse);
+    expect(callbackParameter.type.isArray, isFalse);
+    expect(callbackParameter.type.name, equals("Entry"));
+    expect(callbackParameter.attribute.attributes[0].attributeType,
+        equals(IDLAttributeTypeEnum.INSTANCE_OF));
+    expect(callbackParameter.attribute.attributes[0].attributeValue,
+        equals("Entry"));
+  });
+
+  test('callback parameter with optional', () {
+    ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
+    IDLParameter callbackParameter = chromeIDLParser.callbackParameters
+        .parse("optional DOMString responseUrl");
+
+    expect(callbackParameter, isNotNull);
+  });
+
+  test('callback parameter with array', () {
+    ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
+    IDLParameter callbackParameter = chromeIDLParser.callbackParameters
+        .parse("Device[] result");
+
+    expect(callbackParameter, isNotNull);
+  });
+
+  test('callback parameter', () {
+    ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
+    IDLParameter callbackParameter = chromeIDLParser.callbackParameters
+        .parse("Device device");
+
+    expect(callbackParameter, isNotNull);
   });
 }
 
@@ -347,4 +390,7 @@ void main() {
       chromeIDLParserEnumDeclarationTests);
   group('ChromeIDLParser.callbackParameterType.parse',
       chromeIDLParserCallbackParameterTypeTests);
+  group('ChromeIDLParser.callbackParameters.parse',
+      chromeIDLParserCallbackParameterTests);
 }
+
