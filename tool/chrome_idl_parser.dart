@@ -3,9 +3,10 @@ library chrome_idl_parser;
 // TODO: create seperate model file.
 
 import 'package:parsers/parsers.dart';
+import 'package:persistent/persistent.dart';
 
 // note: choose between using reserved names or keywords
-final reservedNames = [];
+final reservedNames = ["enum"];
 final keywords = [];
 final typeMapping = {};
 
@@ -73,12 +74,20 @@ class IDLCallbackDeclaration {
   String toString() => "IDLCallbackDeclaration()";
 }
 
-// enum definition
+/**
+ * enum definition
+ */
 class IDLEnumDeclaration {
   final String name;
+  final IDLAttributeDeclaration attribute;
   final List<IDLEnumValue> enums;
   final List<String> documentation;
-  String toString() => "IDLEnumDeclaration()";
+
+  IDLEnumDeclaration(this.name, this.enums, {this.attribute,
+    this.documentation});
+
+  String toString() =>
+      "IDLEnumDeclaration($name, $enums, $attribute, $documentation)";
 }
 
 class IDLAttributeDeclaration {
@@ -206,9 +215,11 @@ class IDLAttribute {
 
 class IDLEnumValue {
   final String name;
-  final String value;
+  final List<String> documentation;
 
-  String toString() => "IDLEnumValue()";
+  IDLEnumValue(this.name, {this.documentation});
+
+  String toString() => "IDLEnumValue($name, $documentation)";
 }
 
 class IDLType {
@@ -220,6 +231,7 @@ class IDLType {
 /**
  * Map the namespace declaration parse to a [IDLNamespaceDeclaration]
  */
+// TODO: not finished mapping.
 IDLNamespaceDeclaration idlNamespaceDeclarationMapping(
   List<String> doc, attribute, _, String name, List body, __) =>
 new IDLNamespaceDeclaration(name, attribute, body, doc);
@@ -241,9 +253,24 @@ IDLAttributeTypeEnum _resolveEnum(String name) {
 }
 
 /**
+ * Enum declaration
+ */
+IDLEnumDeclaration idlEnumDeclarationMapping(List<String> documentation,
+  Option attribute, _, String name, List<IDLEnumValue> enumValues, __) =>
+      new IDLEnumDeclaration(name, enumValues,
+          attribute: attribute.isDefined ? attribute.value : null,
+          documentation: documentation);
+
+/**
+ * Enum value
+ */
+IDLEnumValue idlEnumValueMapping(List<String> documentation, String name) =>
+    new IDLEnumValue(name, documentation: documentation);
+
+/**
  * Attribute declaration
  */
-IDLAttributeDeclaration attributeDeclarationMapping(List attributes) =>
+IDLAttributeDeclaration idlAttributeDeclarationMapping(List attributes) =>
   new IDLAttributeDeclaration(attributes);
 
 /**
@@ -276,7 +303,7 @@ class ChromeIDLParser extends LanguageParsers {
                       commentLine: "");
 
   /**
-   * Parse the namespace
+   * Parse the namespace.
    */
   Parser get namespaceDeclaration =>
       docString
@@ -300,44 +327,55 @@ class ChromeIDLParser extends LanguageParsers {
                              | enumDeclaration;
 
   /**
-   * Parse the interface Functions
+   * Parse the interface Functions.
    */
   Parser get functionDeclaration => methods.many;
   Parser get methods => _methods;
   Parser get _methods => null;
 
   /**
-   * Parse the dictionary definitions
+   * Parse the dictionary definitions.
    */
   Parser get typeDeclaration => null;
   Parser get typeBody => fieldDeclared.many;
   Parser get fieldDeclared => null;
 
   /**
-   * Parse the interface Events
+   * Parse the interface Events.
    */
   Parser get eventDeclaration => methods.many;
 
   /**
-   * Parse the callback definitions
+   * Parse the callback definitions.
    */
   Parser get callbackDeclaration => null;
 
   /**
-   * Parse the enum declarations
+   * Parse the enum declarations.
    */
-  Parser get enumDeclaration => null;
-  Parser get enumBody => enumValue;
-  Parser get enumValue => null;
+  Parser get enumDeclaration =>
+      docString
+      + attributeDeclaration.maybe
+      + reserved["enum"]
+      + identifier
+      + braces(enumBody.sepBy(comma))
+      + semi
+      ^ idlEnumDeclarationMapping;
+
+  /**
+   * Parse the enum values.
+   */
+  Parser get enumBody =>
+      docString + identifier ^ idlEnumValueMapping;
 
   /**
    * Parse the attribute declaration.
    */
   Parser get attributeDeclaration =>
-      brackets(attribute.sepBy(comma)) ^ attributeDeclarationMapping;
+      brackets(attribute.sepBy(comma)) ^ idlAttributeDeclarationMapping;
 
   /**
-   * Parse the attribute
+   * Parse the attribute.
    */
   Parser get attribute =>
       // Attribute where name=value
