@@ -114,8 +114,19 @@ class IDLMember {
 class IDLParameter {
   final String name;
   final IDLType type;
-  final bool optional;
-  String toString() => "IDLParameter()";
+  final bool isOptional;
+  final IDLAttributeDeclaration attribute;
+
+  // This is known by the convention used in chrome idl
+  //   static void create(DOMString url, optional CreateWindowOptions options,
+  //     optional CreateWindowCallback callback);
+  final bool isCallback;
+
+  IDLParameter(this.name, this.type,
+      {this.attribute, this.isOptional: false, this.isCallback: false});
+
+  String toString() =>
+      "IDLParameter($name, $type, $attribute, $isOptional, $isCallback)";
 }
 
 /**
@@ -237,9 +248,33 @@ IDLNamespaceDeclaration idlNamespaceDeclarationMapping(
   List<String> doc, attribute, _, String name, List body, __) =>
 new IDLNamespaceDeclaration(name, attribute, body, doc);
 
+/**
+ * Mapping of callback parameter with optional flag.
+ */
+IDLParameter idlCallbackParameterMapping(String name, IDLType type,
+  bool isOptional) =>
+    new IDLParameter(name, type, isOptional: isOptional);
+
+/**
+ * Mapping of callback parameter with attribute based type specificed.
+ */
+IDLParameter idlCallbackParameterAttributeBasedTypeMapping(String name,
+  IDLAttributeDeclaration attribute) {
+  if (attribute.attributes[0].attributeType != IDLAttributeTypeEnum.INSTANCE_OF) {
+    throw new ArgumentError(
+        "attribute was not IDLAttributeTypeEnum.INSTANCE_OF");
+  }
+
+  return new IDLParameter(name,
+      new IDLType(attribute.attributes[0].attributeValue),
+      attribute: attribute);
+}
+
+/**
+ * Mapping of callback parameter type.
+ */
 IDLType idlCallbackParameterTypeMapping(String name, bool isArray) =>
     new IDLType(name, isArray: isArray);
-
 
 /**
  * Method to help find IDLAttributeTypeEnum by String name.
@@ -363,18 +398,23 @@ class ChromeIDLParser extends LanguageParsers {
       + semi ^ (z,x,c,v,b,n) => null;
 
   Parser get callbackMethod =>
+      // TODO: rename callbackParameters to callbackParameter?
       reserved["void"] + parens(callbackParameters.sepBy(comma))
       ^ (_, __) => null;
 
   Parser get callbackParameters =>
       // [instanceOf=Entry] object entry
-      (attributeDeclaration + reserved["object"] + identifier ^ (_,__,___) => null)
+      (attributeDeclaration + reserved["object"] + identifier
+          ^ (attribute, __, name) =>
+              idlCallbackParameterAttributeBasedTypeMapping(name, attribute))
       |
       // optional DOMString responseUrl
-      (reserved["optional"] + callbackParameterType + identifier ^ (_, __, ___) => null)
+      (reserved["optional"] + callbackParameterType + identifier
+          ^ (_, type, name) => idlCallbackParameterMapping(name, type, true))
       |
       //  Device device or Device[] result
-      (callbackParameterType + identifier ^ (_, __) => null);
+      (callbackParameterType + identifier
+          ^ (type, name) => idlCallbackParameterMapping(name, type, false));
 
   Parser get callbackParameterType =>
       // Device[]
