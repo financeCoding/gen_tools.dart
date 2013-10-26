@@ -66,12 +66,18 @@ class IDLEventDeclaration {
   String toString() => "IDLEventDeclaration()";
 }
 
-// callback definition
+/**
+ * callback definition
+ */
 class IDLCallbackDeclaration {
   final String name;
-  // TODO: fill out the rest of the callback signature
+  final List<IDLParameter> parameters;
   final List<String> documentation;
-  String toString() => "IDLCallbackDeclaration()";
+
+  IDLCallbackDeclaration(this.name, this.parameters, {this.documentation});
+
+  String toString() =>
+      "IDLCallbackDeclaration($name, $parameters, $documentation)";
 }
 
 /**
@@ -111,6 +117,9 @@ class IDLMember {
   String toString() => "IDLMember()";
 }
 
+/**
+ * Parameter
+ */
 class IDLParameter {
   final String name;
   final IDLType type;
@@ -239,7 +248,6 @@ class IDLType {
   String toString() => "IDLType($name, $isArray)";
 }
 
-
 /**
  * Map the namespace declaration parse to a [IDLNamespaceDeclaration]
  */
@@ -247,6 +255,14 @@ class IDLType {
 IDLNamespaceDeclaration idlNamespaceDeclarationMapping(
   List<String> doc, attribute, _, String name, List body, __) =>
 new IDLNamespaceDeclaration(name, attribute, body, doc);
+
+/**
+ * Mapping of callback declaration.
+ */
+IDLCallbackDeclaration idlCallbackDeclarationMapping(
+  List<String> documentation, _, String name, __,
+  List<IDLParameter> parameters, ___) =>
+    new IDLCallbackDeclaration(name, parameters, documentation: documentation);
 
 /**
  * Mapping of callback parameter with optional flag.
@@ -389,18 +405,23 @@ class ChromeIDLParser extends LanguageParsers {
    * Parse the callback definitions.
    */
   Parser get callbackDeclaration => _callbackDeclaration.many;
+
+  /**
+   * Parse a callback definition.
+   */
   Parser get _callbackDeclaration =>
       docString
       + reserved["callback"]
       + identifier
       + symbol("=")
       + callbackMethod
-      + semi ^ (z,x,c,v,b,n) => null;
+      + semi ^ idlCallbackDeclarationMapping;
 
   Parser get callbackMethod =>
       // TODO: rename callbackParameters to callbackParameter?
+      // void (StorageUnitInfo[] info)
       reserved["void"] + parens(callbackParameters.sepBy(comma))
-      ^ (_, __) => null;
+      ^ (_, parameters) => parameters;
 
   Parser get callbackParameters =>
       // [instanceOf=Entry] object entry
