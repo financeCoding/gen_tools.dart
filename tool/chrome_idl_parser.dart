@@ -6,7 +6,7 @@ import 'package:parsers/parsers.dart';
 import 'package:persistent/persistent.dart';
 
 // note: choose between using reserved names or keywords
-final reservedNames = ["enum"];
+final reservedNames = ["enum", "callback", "void", "optional", "object"];
 final keywords = [];
 final typeMapping = {};
 
@@ -115,7 +115,6 @@ class IDLParameter {
   final String name;
   final IDLType type;
   final bool optional;
-  final bool isArray;
   String toString() => "IDLParameter()";
 }
 
@@ -224,7 +223,9 @@ class IDLEnumValue {
 
 class IDLType {
   final String name;
-  String toString() => "IDLType()";
+  final bool isArray;
+  IDLType(this.name, {this.isArray: false});
+  String toString() => "IDLType($name, $isArray)";
 }
 
 
@@ -235,6 +236,10 @@ class IDLType {
 IDLNamespaceDeclaration idlNamespaceDeclarationMapping(
   List<String> doc, attribute, _, String name, List body, __) =>
 new IDLNamespaceDeclaration(name, attribute, body, doc);
+
+IDLType idlCallbackParameterTypeMapping(String name, bool isArray) =>
+    new IDLType(name, isArray: isArray);
+
 
 /**
  * Method to help find IDLAttributeTypeEnum by String name.
@@ -348,7 +353,37 @@ class ChromeIDLParser extends LanguageParsers {
   /**
    * Parse the callback definitions.
    */
-  Parser get callbackDeclaration => null;
+  Parser get callbackDeclaration => _callbackDeclaration.many;
+  Parser get _callbackDeclaration =>
+      docString
+      + reserved["callback"]
+      + identifier
+      + symbol("=")
+      + callbackMethod
+      + semi ^ (z,x,c,v,b,n) => null;
+
+  Parser get callbackMethod =>
+      reserved["void"] + parens(callbackParameters.sepBy(comma))
+      ^ (_, __) => null;
+
+  Parser get callbackParameters =>
+      // [instanceOf=Entry] object entry
+      (attributeDeclaration + reserved["object"] + identifier ^ (_,__,___) => null)
+      |
+      // optional DOMString responseUrl
+      (reserved["optional"] + callbackParameterType + identifier ^ (_, __, ___) => null)
+      |
+      //  Device device or Device[] result
+      (callbackParameterType + identifier ^ (_, __) => null);
+
+  Parser get callbackParameterType =>
+      // Device[]
+      (identifier + symbol('[') + symbol(']') ^ (name,__,___) =>
+          idlCallbackParameterTypeMapping(name, true))
+      |
+      // Device
+      (identifier ^ (name) => idlCallbackParameterTypeMapping(name, false));
+
 
   /**
    * Parse the enum declarations.

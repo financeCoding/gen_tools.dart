@@ -318,6 +318,26 @@ VALUE};""");
   });
 }
 
+void chromeIDLParserCallbackParameterTypeTests() {
+  test('callback parameter with array', () {
+    ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
+    IDLType callbackParameterType = chromeIDLParser.callbackParameterType
+        .parse("Device[]");
+    expect(callbackParameterType, isNotNull);
+    expect(callbackParameterType.name, equals("Device"));
+    expect(callbackParameterType.isArray, isTrue);
+  });
+
+  test('callback parameter without array', () {
+    ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
+    IDLType callbackParameterType = chromeIDLParser.callbackParameterType
+        .parse("Device");
+    expect(callbackParameterType, isNotNull);
+    expect(callbackParameterType.name, equals("Device"));
+    expect(callbackParameterType.isArray, isFalse);
+  });
+}
+
 void main() {
   group('ChromeIDLParser.docString.parse', chromeIDLParserDocStringTests);
   group('ChromeIDLParser.attributeDeclaration.parse',
@@ -325,4 +345,6 @@ void main() {
   group('ChromeIDLParser.enumBody.parse', chromeIDLParserEnumBodyTests);
   group('ChromeIDLParser.enumDeclaration.parse',
       chromeIDLParserEnumDeclarationTests);
+  group('ChromeIDLParser.callbackParameterType.parse',
+      chromeIDLParserCallbackParameterTypeTests);
 }
