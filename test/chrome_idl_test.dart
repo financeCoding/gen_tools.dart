@@ -362,6 +362,12 @@ void chromeIDLParserCallbackParameterTests() {
         .parse("optional DOMString responseUrl");
 
     expect(callbackParameter, isNotNull);
+    expect(callbackParameter.name, equals("responseUrl"));
+    expect(callbackParameter.attribute, isNull);
+    expect(callbackParameter.isCallback, isFalse);
+    expect(callbackParameter.isOptional, isTrue);
+    expect(callbackParameter.type.isArray, isFalse);
+    expect(callbackParameter.type.name, equals("DOMString"));
   });
 
   test('callback parameter with array', () {
@@ -370,6 +376,12 @@ void chromeIDLParserCallbackParameterTests() {
         .parse("Device[] result");
 
     expect(callbackParameter, isNotNull);
+    expect(callbackParameter.name, equals("result"));
+    expect(callbackParameter.attribute, isNull);
+    expect(callbackParameter.isCallback, isFalse);
+    expect(callbackParameter.isOptional, isFalse);
+    expect(callbackParameter.type.isArray, isTrue);
+    expect(callbackParameter.type.name, equals("Device"));
   });
 
   test('callback parameter', () {
@@ -378,6 +390,229 @@ void chromeIDLParserCallbackParameterTests() {
         .parse("Device device");
 
     expect(callbackParameter, isNotNull);
+    expect(callbackParameter.name, equals("device"));
+    expect(callbackParameter.attribute, isNull);
+    expect(callbackParameter.isCallback, isFalse);
+    expect(callbackParameter.isOptional, isFalse);
+    expect(callbackParameter.type.isArray, isFalse);
+    expect(callbackParameter.type.name, equals("Device"));
+  });
+}
+
+void chromeIDLParserCallbackMethodTests() {
+  test('with no parameters', () {
+    ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
+    List<IDLParameter> parameters = chromeIDLParser.callbackMethod.parse("void()");
+
+    expect(parameters, isNotNull);
+    expect(parameters.length, equals(0));
+
+    parameters = chromeIDLParser.callbackMethod.parse("void ()");
+
+    expect(parameters, isNotNull);
+    expect(parameters.length, equals(0));
+
+  });
+
+  test('with one parameter', () {
+    ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
+    List<IDLParameter> parameters = chromeIDLParser.callbackMethod
+        .parse("void (long result)");
+
+    expect(parameters, isNotNull);
+    expect(parameters.length, equals(1));
+    IDLParameter parameter = parameters[0];
+    expect(parameter.name, equals("result"));
+    expect(parameter.attribute, isNull);
+    expect(parameter.isCallback, isFalse);
+    expect(parameter.isOptional, isFalse);
+    expect(parameter.type.isArray, isFalse);
+    expect(parameter.type.name, equals("long"));
+  });
+
+  test('with multiple parameters', () {
+    ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
+    List<IDLParameter> parameters = chromeIDLParser.callbackMethod
+        .parse("""void(OutputDeviceInfo[] outputInfo,
+InputDeviceInfo[] inputInfo)""");
+
+    expect(parameters, isNotNull);
+    expect(parameters.length, equals(2));
+    IDLParameter parameter = parameters[0];
+    expect(parameter.name, equals("outputInfo"));
+    expect(parameter.attribute, isNull);
+    expect(parameter.isCallback, isFalse);
+    expect(parameter.isOptional, isFalse);
+    expect(parameter.type.isArray, isTrue);
+    expect(parameter.type.name, equals("OutputDeviceInfo"));
+
+    parameter = parameters[1];
+    expect(parameter.name, equals("inputInfo"));
+    expect(parameter.attribute, isNull);
+    expect(parameter.isCallback, isFalse);
+    expect(parameter.isOptional, isFalse);
+    expect(parameter.type.isArray, isTrue);
+    expect(parameter.type.name, equals("InputDeviceInfo"));
+  });
+
+  test('with mixed type parameters', () {
+    ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
+    List<IDLParameter> parameters = chromeIDLParser.callbackMethod.parse(
+"""void (optional ArrayBuffer result, bool success, DOMString[] codes)""");
+
+    expect(parameters, isNotNull);
+    expect(parameters.length, equals(3));
+    IDLParameter parameter = parameters[0];
+    expect(parameter.name, equals("result"));
+    expect(parameter.attribute, isNull);
+    expect(parameter.isCallback, isFalse);
+    expect(parameter.isOptional, isTrue);
+    expect(parameter.type.isArray, isFalse);
+    expect(parameter.type.name, equals("ArrayBuffer"));
+
+    parameter = parameters[1];
+    expect(parameter.name, equals("success"));
+    expect(parameter.attribute, isNull);
+    expect(parameter.isCallback, isFalse);
+    expect(parameter.isOptional, isFalse);
+    expect(parameter.type.isArray, isFalse);
+    expect(parameter.type.name, equals("bool"));
+
+    parameter = parameters[2];
+    expect(parameter.name, equals("codes"));
+    expect(parameter.attribute, isNull);
+    expect(parameter.isCallback, isFalse);
+    expect(parameter.isOptional, isFalse);
+    expect(parameter.type.isArray, isTrue);
+    expect(parameter.type.name, equals("DOMString"));
+  });
+}
+
+void chromeIDLParserCallbackDeclarationTests() {
+  test('single line', () {
+    ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
+    List<IDLCallbackDeclaration> callbackDeclarations =
+        chromeIDLParser.callbackDeclaration.parse(""" 
+callback GetAuthTokenCallback = void (optional DOMString token);
+""");
+
+    expect(callbackDeclarations, isNotNull);
+    expect(callbackDeclarations.length, equals(1));
+    IDLCallbackDeclaration callbackDeclaration = callbackDeclarations[0];
+    expect(callbackDeclaration.name, equals("GetAuthTokenCallback"));
+    expect(callbackDeclaration.documentation, isEmpty);
+    expect(callbackDeclaration.parameters.length, equals(1));
+    expect(callbackDeclaration.parameters[0].name, equals("token"));
+    expect(callbackDeclaration.parameters[0].type.name, equals("DOMString"));
+    expect(callbackDeclaration.parameters[0].isOptional, isTrue);
+    expect(callbackDeclaration.parameters[0].isCallback, isFalse);
+    expect(callbackDeclaration.parameters[0].attribute, isNull);
+  });
+
+  test('single line with comments', () {
+    ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
+    List<IDLCallbackDeclaration> callbackDeclarations =
+        chromeIDLParser.callbackDeclaration.parse(""" 
+// Some comment.
+callback EntryCallback = void ([instanceOf=Entry] object entry);
+""");
+
+    expect(callbackDeclarations, isNotNull);
+    expect(callbackDeclarations.length, equals(1));
+    IDLCallbackDeclaration callbackDeclaration = callbackDeclarations[0];
+    expect(callbackDeclaration.name, equals("EntryCallback"));
+    expect(callbackDeclaration.documentation.length, equals(1));
+    expect(callbackDeclaration.documentation[0], equals(" Some comment."));
+    expect(callbackDeclaration.parameters.length, equals(1));
+    expect(callbackDeclaration.parameters[0].name, equals("entry"));
+    expect(callbackDeclaration.parameters[0].type.name, equals("Entry"));
+    expect(callbackDeclaration.parameters[0].isOptional, isFalse);
+    expect(callbackDeclaration.parameters[0].isCallback, isFalse);
+    expect(callbackDeclaration.parameters[0].attribute, isNotNull);
+    expect(callbackDeclaration.parameters[0].attribute.attributes.length,
+        equals(1));
+    IDLAttribute attribute =
+        callbackDeclaration.parameters[0].attribute.attributes[0];
+    expect(attribute.attributeType, equals(IDLAttributeTypeEnum.INSTANCE_OF));
+    expect(attribute.attributeValue, equals("Entry"));
+  });
+
+  test('multiline', () {
+    ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
+    List<IDLCallbackDeclaration> callbackDeclarations =
+        chromeIDLParser.callbackDeclaration.parse(""" 
+callback GetAuthTokenCallback = void (optional DOMString token);
+callback EntryCallback = void ([instanceOf=Entry] object entry);
+""");
+
+    expect(callbackDeclarations, isNotNull);
+    expect(callbackDeclarations.length, equals(2));
+    IDLCallbackDeclaration callbackDeclaration = callbackDeclarations[0];
+    expect(callbackDeclaration.name, equals("GetAuthTokenCallback"));
+    expect(callbackDeclaration.documentation, isEmpty);
+    expect(callbackDeclaration.parameters.length, equals(1));
+    expect(callbackDeclaration.parameters[0].name, equals("token"));
+    expect(callbackDeclaration.parameters[0].type.name, equals("DOMString"));
+    expect(callbackDeclaration.parameters[0].isOptional, isTrue);
+    expect(callbackDeclaration.parameters[0].isCallback, isFalse);
+    expect(callbackDeclaration.parameters[0].attribute, isNull);
+
+    callbackDeclaration = callbackDeclarations[1];
+    expect(callbackDeclaration.name, equals("EntryCallback"));
+    expect(callbackDeclaration.documentation, isEmpty);
+    expect(callbackDeclaration.parameters.length, equals(1));
+    expect(callbackDeclaration.parameters[0].name, equals("entry"));
+    expect(callbackDeclaration.parameters[0].type.name, equals("Entry"));
+    expect(callbackDeclaration.parameters[0].isOptional, isFalse);
+    expect(callbackDeclaration.parameters[0].isCallback, isFalse);
+    expect(callbackDeclaration.parameters[0].attribute, isNotNull);
+    expect(callbackDeclaration.parameters[0].attribute.attributes.length,
+        equals(1));
+    IDLAttribute attribute =
+        callbackDeclaration.parameters[0].attribute.attributes[0];
+    expect(attribute.attributeType, equals(IDLAttributeTypeEnum.INSTANCE_OF));
+    expect(attribute.attributeValue, equals("Entry"));
+  });
+
+  test('multiline with comments', () {
+    ChromeIDLParser chromeIDLParser = new ChromeIDLParser();
+    List<IDLCallbackDeclaration> callbackDeclarations =
+        chromeIDLParser.callbackDeclaration.parse("""
+// Some comment.
+callback GetAuthTokenCallback = void (optional DOMString token);
+/* Another comment. */
+callback EntryCallback = void ([instanceOf=Entry] object entry);
+""");
+
+    expect(callbackDeclarations, isNotNull);
+    expect(callbackDeclarations.length, equals(2));
+    IDLCallbackDeclaration callbackDeclaration = callbackDeclarations[0];
+    expect(callbackDeclaration.name, equals("GetAuthTokenCallback"));
+    expect(callbackDeclaration.documentation.length, equals(1));
+    expect(callbackDeclaration.parameters.length, equals(1));
+    expect(callbackDeclaration.documentation[0], equals(" Some comment."));
+    expect(callbackDeclaration.parameters[0].name, equals("token"));
+    expect(callbackDeclaration.parameters[0].type.name, equals("DOMString"));
+    expect(callbackDeclaration.parameters[0].isOptional, isTrue);
+    expect(callbackDeclaration.parameters[0].isCallback, isFalse);
+    expect(callbackDeclaration.parameters[0].attribute, isNull);
+
+    callbackDeclaration = callbackDeclarations[1];
+    expect(callbackDeclaration.name, equals("EntryCallback"));
+    expect(callbackDeclaration.documentation.length, equals(1));
+    expect(callbackDeclaration.documentation[0], equals(" Another comment. "));
+    expect(callbackDeclaration.parameters.length, equals(1));
+    expect(callbackDeclaration.parameters[0].name, equals("entry"));
+    expect(callbackDeclaration.parameters[0].type.name, equals("Entry"));
+    expect(callbackDeclaration.parameters[0].isOptional, isFalse);
+    expect(callbackDeclaration.parameters[0].isCallback, isFalse);
+    expect(callbackDeclaration.parameters[0].attribute, isNotNull);
+    expect(callbackDeclaration.parameters[0].attribute.attributes.length,
+        equals(1));
+    IDLAttribute attribute =
+        callbackDeclaration.parameters[0].attribute.attributes[0];
+    expect(attribute.attributeType, equals(IDLAttributeTypeEnum.INSTANCE_OF));
+    expect(attribute.attributeValue, equals("Entry"));
   });
 }
 
@@ -392,5 +627,8 @@ void main() {
       chromeIDLParserCallbackParameterTypeTests);
   group('ChromeIDLParser.callbackParameters.parse',
       chromeIDLParserCallbackParameterTests);
+  group('ChromeIDLParser.callbackMethod.parse',
+        chromeIDLParserCallbackMethodTests);
+  group('ChromeIDLParser.callbackDeclaration.parse',
+        chromeIDLParserCallbackDeclarationTests);
 }
-
